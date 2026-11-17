@@ -24,7 +24,9 @@ const PANTS = ['#3b4f6b', '#8a7552', '#2e3347', '#5f4636', '#3a3a3d', '#b8a78a']
 function makeLook(l) {
   return { scale: l.scale || 1, skin: hexToRgb(l.skin || pickOne(SKINS)), shirt: hexToRgb(l.shirt || pickOne(SHIRTS)), pants: hexToRgb(l.pants || pickOne(PANTS)),
     hat: l.hat !== undefined ? l.hat : pickOne(['none', 'cap', 'straw', 'none', 'turban']), hatC: hexToRgb(l.hatCol || pickOne(['#ffd23f', '#e8553d', '#fdf6e3', '#4d96ff'])),
-    gag: l.gag !== undefined ? l.gag : (Math.random() < 0.08 ? pickOne(['cone', 'duck', 'ring']) : ''), shoe: hexToRgb('#3b2f2a') };
+    gag: l.gag !== undefined ? l.gag : (Math.random() < 0.08 ? pickOne(['cone', 'duck', 'ring']) : ''), shoe: hexToRgb(l.shoe || '#3b2f2a'),
+    wide: l.wide || 1, head: l.head || 1, eye: l.eye || 1, nose: l.nose || 1, mouth: l.mouth || 1, hairStyle: l.hairStyle || 'short', hairC: l.hairCol ? hexToRgb(l.hairCol) : null,
+    glasses: l.glasses || '', beard: l.beard || '', stripe: l.stripe || '', eyeC: l.eyeCol ? hexToRgb(l.eyeCol) : null };
 }
 
 class Human {
@@ -82,7 +84,7 @@ function holdPoint(p) {
 }
 /** 被抓住的人：被玩家单手提着后领，身体自然下垂、随步伐轻轻摆动 */
 function heldPose(h) {
-  const Pl = G.player, H = holdPoint(Pl), s = h.look.scale, t = G.time * 5 + (h.seed || 0);
+  const Pl = h.carrier || G.player, H = holdPoint(Pl), s = h.look.scale, t = G.time * 5 + (h.seed || 0);
   const yaw = Pl.yaw + 1.57, f = [-Math.sin(yaw), 0, -Math.cos(yaw)], r = [Math.cos(yaw), 0, -Math.sin(yaw)];
   const pf = [-Math.sin(Pl.yaw), 0, -Math.cos(Pl.yaw)], mv = Pl.moveAmt || 0;
   const swing = Math.sin(Pl.anim * 2 + 1) * 0.12 * mv + Math.sin(t) * 0.04;
@@ -101,7 +103,7 @@ function heldPose(h) {
   return P;
 }
 function standPose(h) {
-  if (h.state === 'held' && typeof G !== 'undefined' && G.held === h && G.player) return heldPose(h);
+  if (h.state === 'held' && typeof G !== 'undefined' && (G.held === h || h.carrier) && G.player) return heldPose(h);
   const P = standPose0(h);
   if (!(typeof W !== 'undefined' && W && W.pyrs) || h.state === 'rag') return P;
   if (typeof G !== 'undefined' && G.held && h === G.player) {                       // 抓人姿势：右臂前伸提着，左手自然前摆
@@ -263,7 +265,7 @@ function drawHuman(h, out, far) {
     sanitizeHuman(h, 'pose'); if (!Number.isFinite(h.yaw)) h.yaw = 0;
     P = h.state === 'rag' ? h.rag.p : standPose(h);
   }
-  const L = h.look, s = L.scale;
+  const L = h.look, s = L.scale, wd = L.wide || 1;
   const up = nrm3(sub3(P.head, P.chest)), right = nrm3(sub3(P.shR, P.shL)), fwd = cross3(up, right);
   const push = (mesh, m, col) => out.push({ mesh, m, col, rad: 3 });
   const R = renderer.m, hd = P.head;
@@ -273,25 +275,36 @@ function drawHuman(h, out, far) {
   const lerp3 = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
   const skin2 = [L.skin[0] * 0.9, L.skin[1] * 0.84, L.skin[2] * 0.8];
   // 躯干：骨盆 + 腰 + 胸腔（椭球）+ 颈
-  push(R.sph, bas(P.pelvis, 0.50 * s, 0.38 * s, 0.34 * s), L.pants);
-  push(R.cyl, M4.seg(P.pelvis, P.chest, 0.50 * s, 0.34 * s), L.shirt);
-  push(R.sph, bas(lerp3(P.pelvis, P.chest, 0.78), 0.60 * s, 0.56 * s, 0.38 * s), L.shirt);
+  push(R.sph, bas(P.pelvis, 0.50 * s * wd, 0.38 * s, 0.34 * s * wd), L.pants);
+  push(R.cyl, M4.seg(P.pelvis, P.chest, 0.50 * s * wd, 0.34 * s * wd), L.shirt);
+  push(R.sph, bas(lerp3(P.pelvis, P.chest, 0.78), 0.60 * s * wd, 0.56 * s, 0.38 * s * wd), L.shirt);
+  if (L.stripe) { const st = L.stripe === 'dark' ? [L.shirt[0] * 0.55, L.shirt[1] * 0.55, L.shirt[2] * 0.55] : [0.95, 0.93, 0.88]; [0.18, 0.4, 0.62].forEach(f => push(R.sph, bas(lerp3(P.pelvis, P.chest, f), 0.53 * s * wd, 0.09 * s, 0.37 * s * wd), st)); }
   if (far) { push(R.sph, bas(hd, 0.48 * s, 0.56 * s, 0.51 * s), L.skin); tube(P.hipL, P.footL, 0.3 * s, L.pants); tube(P.hipR, P.footR, 0.3 * s, L.pants); return; }
-  const k = 0.8;                                                                    // 头部整体缩小，比例更接近真人
+  const k = 0.8 * (L.head || 1);                                                                    // 头部整体缩小，比例更接近真人
   push(R.cyl, M4.seg(lerp3(P.chest, hd, 0.15), lerp3(P.chest, hd, 0.7), 0.2 * s * k, 0.2 * s * k), skin2);
   push(R.sph, bas(hd, 0.6 * s * k, 0.7 * s * k, 0.64 * s * k), L.skin);
   push(R.sph, bas(addk(addk(hd, up, -0.2 * s * k), fwd, 0.04 * s * k), 0.46 * s * k, 0.34 * s * k, 0.5 * s * k), L.skin);               // 下颌
   const hairC = L.hairC || (L.hairC = [[0.1, 0.07, 0.05], [0.25, 0.15, 0.08], [0.05, 0.05, 0.06], [0.45, 0.3, 0.14], [0.35, 0.35, 0.37]][Math.floor(((L.skin[0] * 97 + L.shirt[1] * 53 + L.pants[2] * 31) % 1) * 5) % 5]);
-  if (!L.hat) { push(R.sph, bas(addk(addk(hd, up, 0.13 * s * k), fwd, -0.07 * s * k), 0.64 * s * k, 0.58 * s * k, 0.66 * s * k), hairC); }
-  push(R.sph, bas(addk(hd, fwd, 0.31 * s * k), 0.11 * s * k, 0.14 * s * k, 0.14 * s * k), skin2);                                    // 鼻子
+  const hs = L.hairStyle || 'short', hpush = (a, b, c, d) => push(R.sph, bas(a, b * s * k, c * s * k, d * s * k), hairC);
+  if ((!L.hat || L.hat === 'none') && hs !== 'bald') {
+    if (hs === 'afro') hpush(addk(hd, up, 0.2 * s * k), 0.95, 0.85, 0.95);
+    else hpush(addk(addk(hd, up, 0.13 * s * k), fwd, -0.07 * s * k), 0.64, 0.58, 0.66);
+    if (hs === 'long') { hpush(addk(addk(hd, up, -0.25 * s * k), fwd, -0.22 * s * k), 0.62, 0.9, 0.4); }
+    else if (hs === 'bun') hpush(addk(addk(hd, up, 0.55 * s * k), fwd, -0.1 * s * k), 0.3, 0.3, 0.3);
+    else if (hs === 'mohawk') { for (let i = 0; i < 4; i++) hpush(addk(addk(hd, up, (0.5 - i * 0.05) * s * k), fwd, (0.18 - i * 0.14) * s * k), 0.1, 0.3, 0.2); }
+    else if (hs === 'twin') [-1, 1].forEach(sd => hpush(addk(addk(addk(hd, up, 0.2 * s * k), right, 0.5 * sd * s * k), fwd, -0.05 * s * k), 0.26, 0.5, 0.26));
+  }
+  push(R.sph, bas(addk(hd, fwd, 0.31 * s * k), 0.11 * s * k * (L.nose || 1), 0.14 * s * k * (L.nose || 1), 0.14 * s * k * (L.nose || 1)), skin2);                                    // 鼻子
   [-1, 1].forEach(sd => {
     const e = addk(addk(addk(hd, fwd, 0.26 * s * k), right, 0.15 * s * k * sd), up, 0.07 * s * k);
-    push(R.sph, bas(e, 0.15 * s * k, 0.11 * s * k, 0.07 * s * k), [0.95, 0.94, 0.9]);
-    push(R.sph, bas(addk(e, fwd, 0.03 * s * k), 0.075 * s * k, 0.085 * s * k, 0.05 * s * k), [0.06, 0.04, 0.03]);
+    push(R.sph, bas(e, 0.15 * s * k * (L.eye || 1), 0.11 * s * k * (L.eye || 1), 0.07 * s * k), [0.95, 0.94, 0.9]);
+    push(R.sph, bas(addk(e, fwd, 0.03 * s * k), 0.075 * s * k * (L.eye || 1), 0.085 * s * k * (L.eye || 1), 0.05 * s * k), L.eyeC || [0.06, 0.04, 0.03]);
+    if (L.glasses) { push(R.sph, bas(addk(e, fwd, 0.05 * s * k), 0.2 * s * k, 0.2 * s * k, 0.03 * s * k), L.glasses === 'shade' ? [0.04, 0.04, 0.05] : [0.7, 0.85, 0.95]); }
     push(R.sph, bas(addk(addk(hd, right, 0.3 * s * k * sd), up, -0.02 * s * k), 0.07 * s * k, 0.14 * s * k, 0.1 * s * k), skin2);         // 耳朵
     push(R.sph, bas(addk(addk(addk(hd, fwd, 0.27 * s * k), right, 0.14 * s * k * sd), up, 0.17 * s * k), 0.17 * s * k, 0.04 * s * k, 0.07 * s * k), hairC);   // 眉毛
   });
-  push(R.sph, bas(addk(addk(hd, fwd, 0.29 * s * k), up, -0.15 * s * k), 0.17 * s * k, 0.045 * s * k, 0.05 * s * k), [0.55, 0.25, 0.2]);   // 嘴
+  push(R.sph, bas(addk(addk(hd, fwd, 0.29 * s * k), up, -0.15 * s * k), 0.17 * s * k * (L.mouth || 1), 0.045 * s * k, 0.05 * s * k), [0.55, 0.25, 0.2]);   // 嘴
+  if (L.beard) push(R.sph, bas(addk(addk(hd, fwd, 0.22 * s * k), up, -0.3 * s * k), L.beard === 'goatee' ? 0.16 * s * k : 0.5 * s * k, 0.2 * s * k, 0.28 * s * k), hairC);
   if (L.hat === 'cap') { push(R.sph, bas(addk(hd, up, 0.12 * s * k), 0.7 * s * k, 0.56 * s * k, 0.72 * s * k), L.hatC); push(R.sph, bas(addk(addk(hd, up, 0.14 * s * k), fwd, 0.34 * s * k), 0.5 * s * k, 0.07 * s * k, 0.4 * s * k), L.hatC); }
   else if (L.hat === 'straw') { push(R.sph, bas(addk(hd, up, 0.3 * s * k), 1.3 * s * k, 0.1 * s * k, 1.3 * s * k), [0.9, 0.76, 0.42]); push(R.sph, bas(addk(hd, up, 0.42 * s * k), 0.62 * s * k, 0.46 * s * k, 0.62 * s * k), [0.88, 0.72, 0.38]); push(R.cyl, M4.seg(addk(hd, up, 0.32 * s * k), addk(hd, up, 0.4 * s * k), 0.64 * s * k, 0.64 * s * k), [0.78, 0.2, 0.18]); }
   else if (L.hat === 'turban') { push(R.sph, bas(addk(hd, up, 0.2 * s * k), 0.8 * s * k, 0.56 * s * k, 0.82 * s * k), L.hatC); push(R.sph, bas(addk(hd, up, 0.42 * s * k), 0.55 * s * k, 0.4 * s * k, 0.55 * s * k), L.hatC); }
@@ -304,7 +317,7 @@ function drawHuman(h, out, far) {
     push(R.sph, bas(hp, 0.17 * s, 0.22 * s, 0.14 * s), L.skin);
     const hi = P['hip' + n], fp = P['foot' + n], kn = lerp3(hi, fp, 0.5);
     ball(hi, 0.3 * s, L.pants); tube(hi, kn, 0.28 * s, L.pants); tube(kn, lerp3(kn, fp, 0.86), 0.23 * s, L.pants);
-    push(R.sph, M4.compose(fp[0], fp[1] - 0.02, fp[2], 0, h.state === 'rag' ? 0 : h.yaw, 0, 0.3 * s, 0.2 * s, 0.44 * s), L.shoe);
+    push(R.sph, M4.compose(fp[0], fp[1] + 0.1 * s - 0.05, fp[2], 0, h.state === 'rag' ? 0 : h.yaw, 0, 0.3 * s, 0.2 * s, 0.44 * s), L.shoe);
   });
 }
 
@@ -419,6 +432,7 @@ function updateVehicle(v, dt) {
       hitHuman(h, [f[0] * v.sp * 1.15 + side * 4, 4 + Math.abs(v.sp) * 0.25, f[2] * v.sp * 1.15 + side * 4], ridden, v.ai === 'stampede');
       if (!ridden) v.sp *= 0.85;
     }
+    if (ridden && typeof Social !== 'undefined') Social.hitNear(v.x, v.z, T.r + 0.5, () => [f[0] * v.sp * 1.15 + (Math.random() - 0.5) * 4, 4 + Math.abs(v.sp) * 0.25, f[2] * v.sp * 1.15 + (Math.random() - 0.5) * 4]);
     if (v.ai === 'stampede' && P.state === 'walk' && Math.hypot(P.x - v.x, P.z - v.z) < T.r + 0.6) { startRag(P, [f[0] * v.sp * 1.2, 7, f[2] * v.sp * 1.2]); popup('骆驼大军路过，游客成为地毯', 'bad'); Snd.boing(); }
     for (const p of G.props) if (p.state !== 'fly' && Math.hypot(p.x - v.x, p.z - v.z) < T.r + 0.7) launchProp(p, [f[0] * v.sp * 1.1 + (Math.random() - 0.5) * 4, 5 + Math.random() * 4, f[2] * v.sp * 1.1 + (Math.random() - 0.5) * 4], ridden);
   }

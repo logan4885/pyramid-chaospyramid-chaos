@@ -21,7 +21,7 @@ function policeReset() {            // 复活 / 通缉清零
 function nearestGrab() {
   const P = G.player; if (P.state !== 'walk' || G.held) return null;
   let best = null, bd = 2.8;
-  for (const h of G.humans) {
+  for (const h of G.humans.concat(Social.grabbable())) {
     if (h.state !== 'walk' || Math.abs(h.y - P.y) > 2.2) continue;
     const d = Math.hypot(h.x - P.x, h.z - P.z); if (d < bd) { bd = d; best = h; }
   }
@@ -33,10 +33,11 @@ function grabOrThrow() {
   const P = G.player; if (P.state !== 'walk') return;
   const h = nearestGrab(); if (!h) { popup('附近没有能抓的人（贴近一点）'); return; }
   h.state = 'held'; h.jet = false; h.target = null; h.selfie = false; h.wave = false; h.fleeT = 0; h.air = true; h.vx = h.vz = h.vy = 0; h.moveAmt = 0; h.runAmt = 0;
+  if (h.remoteId) Social.grab(h);
   G.held = h; chaos(25, h.kind === 'guard' ? '把保安举过头顶' : '一把薅起'); Snd.boing();
   addHeat(h.kind === 'guard' ? 0.35 : h.kind === 'merchant' ? 0.5 : 0.12);
 }
-function dropHeld() { const h = G.held; G.held = null; if (!h) return; h.state = 'walk'; h.air = false; startRag(h, [0, 2, 0]); }
+function dropHeld() { const h = G.held; G.held = null; if (!h) return; h.state = 'walk'; h.air = false; if (h.remoteId) { Social.release(h, 'drop'); return; } startRag(h, [0, 2, 0]); }
 /** 投掷初速度：方向取镜头朝向，俯仰决定抛射角 */
 function throwVel() {
   const C = G.cam, f = [-Math.sin(C.yaw), 0, -Math.cos(C.yaw)], up = clampv(C.pitch, -0.3, 0.6), hs = 27, vy = 12 + up * 12;
@@ -47,13 +48,14 @@ function throwHeld() {
   const H = holdPoint(P), v = throwVel();
   G.held = null; h.state = 'walk'; h.air = false;
   h.x = H[0]; h.z = H[2]; h.y = H[1] - 1.25;
-  startRag(h, v);
-  h.thrown = { x: h.x, z: h.z, t: G.time };
+  if (h.remoteId) Social.release(h, 'throw', { v, p: [h.x, h.y, h.z] }); else { startRag(h, v);
+  h.thrown = { x: h.x, z: h.z, t: G.time }; }
   P.yaw = Math.atan2(-v[0], -v[2]);
   chaos(60, '投掷：人形铅球'); shake(0.25); Snd.boing(); Snd.crash();
 }
 function updateHeld(dt) {
   const h = G.held, P = G.player; if (!h) return;
+  if (h.remoteId && !Social.remotes.has(h.remoteId)) { G.held = null; return; }
   if (P.state !== 'walk' || G.overlay || h.state !== 'held') { dropHeld(); return; }
   const H = holdPoint(P);
   h.x = H[0]; h.z = H[2]; h.y = H[1] - 1.55 * (h.look.scale || 1); h.yaw = P.yaw + 1.57; h.air = true; h.moveAmt = 0;

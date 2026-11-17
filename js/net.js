@@ -41,18 +41,20 @@ const Net = {
   },
   handle(m) {
     if (!m || m.id === this.id || !this.joined) return;
-    if (m.t === 'chat' || m.t === 'bye') { const k = m.id + ':' + m.n; if (this._seen.has(k)) return; this._seen.add(k); if (this._seen.size > 200) this._seen.delete(this._seen.values().next().value); }   // 双通道（WS+标签页）去重
+    if (m.t === 'chat' || m.t === 'bye' || m.t === 'ev') { const k = m.id + ':' + m.n; if (this._seen.has(k)) return; this._seen.add(k); if (this._seen.size > 200) this._seen.delete(this._seen.values().next().value); }   // 双通道（WS+标签页）去重
     if (m.t === 'bye') { if (this.peers.delete(m.id)) this.changed(); return; }
     let p = this.peers.get(m.id);
     if (!p) { p = { id: m.id, name: m.name }; this.peers.set(m.id, p); this.changed(); }
     p.t = performance.now(); if (p.name !== m.name) { p.name = m.name; this.changed(); }
     if (m.t === 'hello') this.sendState();
     else if (m.t === 'state') Object.assign(p, m.s, { name: m.name });
+    else if (m.t === 'ev') { if (m.to === this.id && this.onEv) this.onEv(m); }
     else if (m.t === 'chat') { const e = { id: m.id, name: m.name, text: String(m.text || '').slice(0, 80), t: performance.now() }; this.pushLog(e); if (this.onChat) this.onChat(e); }
   },
   pushLog(e) { this.log.push(e); if (this.log.length > 30) this.log.shift(); this.changed(); },
   sendState() { if (this.getState) this.send({ t: 'state', s: this.getState() }); },
   chat(text) { text = String(text).slice(0, 80); const e = { id: this.id, name: this.name, text, t: performance.now(), me: true }; this.send({ t: 'chat', text }); this.pushLog(e); if (this.onChat) this.onChat(e); },
+  sendEv(to, k, d) { this.send({ t: 'ev', to, k, d: d || {} }); },
   rename(n) { this.name = (n || '').trim().slice(0, 12) || this.name; this.send({ t: 'hello' }); this.changed(); },
   tick() {
     this.sendState();

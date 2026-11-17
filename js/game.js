@@ -107,7 +107,7 @@ function newGame() {
   };
   const sp = W.spawn;
   policeInit();
-  G.player = new Human({ kind: 'player', x: sp.player.x, z: sp.player.z, yaw: 0, look: { shirt: '#b9652f', pants: '#3a4a63', hat: 'straw', gag: '', skin: '#d9a577' } });
+  G.player = new Human({ kind: 'player', x: sp.player.x, z: sp.player.z, yaw: 0, look: Cust.spec() });
   sp.vehicles.forEach(v => G.vehicles.push(new Vehicle(v[0], v[1], v[2], v[3])));
   sp.pickups.forEach(p => G.pickups.push({ kind: p[0], x: p[1], z: p[2], active: true, t: 0 }));
   sp.vendors.forEach(v => G.humans.push(Object.assign(new Human({ kind: 'merchant', x: v.x, z: v.z, look: v.look, wave: true }), { vendor: v.kind })));
@@ -200,6 +200,7 @@ function useItem() {
       if (h.state === 'rag') continue; const dx = h.x - P.x, dz = h.z - P.z, d = Math.hypot(dx, dz); if (d > 14) continue;
       if (d < 7) { hitHuman(h, [dx / (d || 1) * 10, 7, dz / (d || 1) * 10], true); n++; } else { h.fleeT = 4; h.fx = P.x; h.fz = P.z; }
     }
+    Social.hitNear(P.x, P.z, 7, (dx, dz, d) => [dx / (d || 1) * 10, 7, dz / (d || 1) * 10]);
     for (const p of G.props) if (Math.hypot(p.x - P.x, p.z - P.z) < 8) launchProp(p, [(p.x - P.x) * 1.2, 8, (p.z - P.z) * 1.2], true);
     addHeat(0.3); if (--it.ammo <= 0) { G.item = null; popup('喇叭用完了（耳鸣还在）'); }
   } else if (it.type === 'banana') {
@@ -253,6 +254,13 @@ function respawn() {
 function updatePlayer(dt) {
   const P = G.player;
   if (G.overlay) { G.overlay.t -= dt; if (G.overlay.t <= 0) respawn(); if (P.state === 'rag') stepRag(P, dt); return; }
+  if (P.state === 'held') {
+    const c = P.carrier;
+    if (!c || !Social.remotes.has(P.carrierId)) { P.state = 'walk'; P.carrier = null; P.air = true; startRag(P, [0, 2, 0]); return; }
+    const H = holdPoint(c); P.x = H[0]; P.z = H[2]; P.y = H[1] - 1.55 * (P.look.scale || 1); P.yaw = c.yaw + 1.57; P.moveAmt = 0; P.runAmt = 0; P.vx = P.vz = P.vy = 0; P.air = true;
+    if (G.jumpReq) { G.jumpReq = false; P.struggle = (P.struggle || 0) + 1; shake(0.15); if (P.struggle >= 4) { P.struggle = 0; Net.sendEv(P.carrierId, 'free'); P.state = 'walk'; P.carrier = null; P.y = groundAt(P.x, P.z, P.y + 1); popup('你挣脱了！'); } }
+    return;
+  }
   if (P.state === 'rag') {
     stepRag(P, dt);
     const move = K.KeyW || K.KeyA || K.KeyS || K.KeyD || K.Space;
@@ -279,6 +287,7 @@ function updatePlayer(dt) {
     if (h.state === 'rag' || h.kind === 'merchant') continue;
     const dx = h.x - P.x, dz = h.z - P.z; if (dx * dx + dz * dz < 0.85) hitHuman(h, [P.vx * 1.2, 5, P.vz * 1.2], true);
   }
+  if (Math.hypot(P.vx, P.vz) > 6.5) Social.hitNear(P.x, P.z, 0.92, () => [P.vx * 1.2, 5, P.vz * 1.2]);
   // 自动拾取
   for (const p of G.pickups) if (p.active && Math.hypot(p.x - P.x, p.z - P.z) < 1.8 && Math.abs(P.y - 0) < 6) { p.active = false; p.t = 40; giveItem(p.kind); }
   if (P.y >= PYR.top - 6 && Math.hypot(P.x - PYR.x, P.z - PYR.z) < 14) { challengeDone('summit'); }
@@ -499,7 +508,8 @@ function loop(now) {
   requestAnimationFrame(loop);
   const dt = Math.min(0.05, (now - lastT) / 1000 || 0.016); lastT = now;
   if (!G) return;
-  if (G.phase === 'play' && !G.paused) update(dt);
+  if (G.phase === 'play' && !G.paused && !Cust.open) update(dt);
+  if (Cust.open) Cust.camUpdate(dt);
   render();
 }
 function lockPointer() { if (G && G.noLock) return; if (typeof Touch !== 'undefined' && Touch.on) return; try { const r = $('gl').requestPointerLock(); if (r && r.catch) r.catch(() => { if (G) G.noLock = true; }); } catch (e) { if (G) G.noLock = true; } }
@@ -535,6 +545,7 @@ function bindInput() {
   let drag = false; const cv = $('gl');
   cv.addEventListener('mousedown', e => { if (G && G.chatOpen) Social.close(false); drag = true; if (G && G.phase === 'play' && !G.paused && !document.pointerLockElement) lockPointer(); if (e.button === 0 && G && G.held && document.pointerLockElement) G.gReq = true; }); addEventListener('mouseup', () => { drag = false; });
   addEventListener('mousemove', e => { if (!G || G.paused) return; if (document.pointerLockElement || drag) { mouse.dx += e.movementX; mouse.dy += e.movementY; } });
+  $('btnCust').onclick = () => Cust.show(); $('btnCust2').onclick = () => Cust.show();
   $('btnStart').onclick = () => { startGame(); lockPointer(); };
   $('btnResume').onclick = () => { lockPointer(); Snd.init(); setPaused(false); };
   $('btnRestart').onclick = () => { startGame(); lockPointer(); };
