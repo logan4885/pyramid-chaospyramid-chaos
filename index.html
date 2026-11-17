@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>PYRAMID CHAOS · MVP02</title>
-<link rel="stylesheet" href="css/style.css?v=20261117i">
+<link rel="stylesheet" href="css/style.css?v=20261117j">
 </head>
 <body>
 <canvas id="gl"></canvas>
@@ -31,14 +31,14 @@
   <div id="btns"><button id="btnMute">🔊</button><button id="btnPause">⏸</button></div>
 </div>
 
-<div id="chatBox" class="hidden"><input id="chatIn" maxlength="80" autocomplete="off" placeholder="说点什么… Enter 发送 · Esc 取消 · /name 改昵称 · /room 换房间"></div>
+<div id="chatBox" class="hidden"><input id="chatIn" maxlength="80" autocomplete="off" placeholder="说点什么… Enter 发送 · Esc 取消 · /name 改昵称"></div>
 
 <div id="overlay" class="hidden"><div id="ovText"></div><div id="ovSub"></div></div>
 
 <div id="screenMenu" class="screen">
   <div class="card">
     <h1>PYRAMID CHAOS</h1>
-    <h2>金字塔大乱斗 · MVP02（第三人称搞笑沙盒）<small style="font-size:11px;opacity:.6"> build 20261117i</small></h2>
+    <h2>金字塔大乱斗 · MVP02（第三人称搞笑沙盒）<small style="font-size:11px;opacity:.6"> build 20261117j</small></h2>
     <p>你是一位<b>不太守规矩的游客</b>。景区很大，规则很少。骑骆驼、开观光车、坐火箭行李车、用喷射背包飞上金字塔——然后向保安解释这一切。</p>
     <ul>
       <li>撞飞路人、砸东西、偷骆驼会提高<b>通缉星级</b>；<b>G 键抓人、再按 G 扔出去</b>！通缉升级：1★保安步行 → 2★骑骆驼 → 3★喷气背包 → 4★轰炸机 → 5★核弹</li>
@@ -48,8 +48,7 @@
     <div class="keys"><span>WASD</span>移动 <span>鼠标</span>转镜头 <span>Shift</span>冲刺/加速 <span>空格</span>跳/刹车/喷射 <span>E</span>交互·上下车 <span>F</span>用道具 <span>R</span>摔倒 <span>G</span>抓人/扔人 <span>Esc</span>暂停</div>
     <div class="net">
       <label>昵称<input id="nameIn" maxlength="12" autocomplete="off"></label>
-      <label>房间号<input id="roomIn" maxlength="16" autocomplete="off"></label>
-      <label>联机服务器<input id="srvIn" autocomplete="off" placeholder="可选：ws://IP:8787"></label>
+      <label id="srvLabel">联机服务器<input id="srvIn" autocomplete="off" placeholder="可选：ws://IP:8787"></label>
       <small>同一房间号的玩家互相可见（头顶气泡聊天 · Enter 打字）。不填服务器 = 同一浏览器的多个标签页联机；跨电脑请运行 <b>node server.js</b> 后用 http://IP:8787 打开。</small>
     </div>
     <button id="btnStart" class="big">开始作妖</button>
@@ -61,14 +60,14 @@
 
 <div id="nukeBanner" class="hidden"></div><div id="flash"></div>
 <div id="dbg" style="position:fixed;left:8px;bottom:8px;z-index:50;font:11px/1.35 monospace;color:#0f0;background:rgba(0,0,0,.65);padding:6px 8px;border-radius:6px;white-space:pre;display:none;pointer-events:none"></div>
-<script src="js/engine.js?v=20261117i"></script>
-<script src="js/data.js?v=20261117i"></script>
-<script src="js/world.js?v=20261117i"></script>
-<script src="js/entities.js?v=20261117i"></script>
-<script src="js/fx.js?v=20261117i"></script>
-<script src="js/police.js?v=20261117i"></script>
-<script src="js/net.js?v=20261117i"></script>
-<script src="js/social.js?v=20261117i"></script>
-<script src="js/game.js?v=20261117i"></script>
+<script src="js/engine.js?v=20261117j"></script>
+<script src="js/data.js?v=20261117j"></script>
+<script src="js/world.js?v=20261117j"></script>
+<script src="js/entities.js?v=20261117j"></script>
+<script src="js/fx.js?v=20261117j"></script>
+<script src="js/police.js?v=20261117j"></script>
+<script src="js/net.js?v=20261117j"></script>
+<script src="js/social.js?v=20261117j"></script>
+<script src="js/game.js?v=20261117j"></script>
 </body>
 </html>
