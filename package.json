@@ -1,0 +1,8 @@
+{
+  "name": "pyramid-chaos",
+  "version": "1.0.0",
+  "description": "PYRAMID CHAOS 联机服务器（零依赖）",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=14" }
+}

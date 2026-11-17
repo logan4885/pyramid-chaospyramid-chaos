@@ -1,0 +1,77 @@
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: #1b1410; color: #fff8e6; font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", system-ui, sans-serif; user-select: none; -webkit-user-select: none; }
+canvas#gl { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+.hidden { display: none !important; }
+#tags { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+.tag { position: absolute; transform: translate(-50%, -100%); white-space: nowrap; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 10px; background: rgba(30,20,10,.62); border: 1px solid rgba(255,230,160,.5); text-shadow: 0 1px 2px #000; display: none; }
+
+#hud { position: fixed; inset: 0; pointer-events: none; }
+#topL { position: absolute; left: 12px; top: 12px; padding: 10px 12px; border-radius: 12px; background: rgba(30,20,10,.55); min-width: 180px; display: flex; flex-direction: column; gap: 6px; }
+#topL .row { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+#vMoney { font-size: 20px; color: #ffe08a; }
+.bar { flex: 1; height: 10px; border-radius: 6px; background: rgba(255,255,255,.18); overflow: hidden; }
+.bar i { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, #e8553d, #ff8a6b); border-radius: 6px; transition: width .2s; }
+#topC { position: absolute; left: 50%; top: 8px; transform: translateX(-50%); text-align: center; text-shadow: 0 2px 4px #000; }
+#vScore { font-size: 38px; font-weight: 900; color: #ffd23f; line-height: 1; font-variant-numeric: tabular-nums; }
+#vBest { font-size: 11px; opacity: .7; } #vCombo { font-size: 18px; font-weight: 800; color: #ff7b00; height: 22px; }
+#stars { margin-top: 2px; } #vStars { font-size: 20px; letter-spacing: 3px; opacity: .55; } #vStars.on { color: #ff4444; opacity: 1; }
+.heat { width: 130px; height: 5px; margin: 2px auto 0; background: rgba(255,255,255,.2); border-radius: 3px; overflow: hidden; } .heat i { display: block; height: 100%; background: #ff4444; width: 0; }
+#topR { position: absolute; right: 12px; top: 12px; border-radius: 12px; overflow: hidden; border: 2px solid rgba(255,230,160,.7); width: 150px; height: 150px; }
+#mini { display: block; }
+#chal { position: absolute; left: 12px; bottom: 36px; padding: 10px 14px; border-radius: 12px; background: rgba(30,20,10,.55); font-size: 13px; line-height: 1.4; max-width: 260px; }
+#chal h4 { margin: 0 0 4px; font-size: 12px; opacity: .7; } #chal div { margin: 2px 0; } #chal small { display: block; font-size: 10px; opacity: .55; margin-left: 20px; }
+#chal .done { color: #8dff9b; }
+#popups { position: absolute; left: 12px; top: 120px; display: flex; flex-direction: column; gap: 5px; max-width: 420px; }
+.pop { padding: 6px 12px; border-radius: 8px; background: rgba(30,20,10,.78); font-size: 14px; border-left: 4px solid #ffd23f; animation: fadein .2s; }
+.pop.hot { border-color: #ff7b00; color: #ffe08a; font-weight: 800; } .pop.bad { border-color: #ff4444; } .pop.good { border-color: #8dff9b; } .pop.narr { border-color: #9db4ff; font-style: italic; }
+@keyframes fadein { from { opacity: 0; transform: translateX(-10px); } }
+#prompt { position: absolute; left: 50%; bottom: 120px; transform: translateX(-50%); padding: 8px 16px; border-radius: 10px; background: rgba(255,200,60,.95); color: #3b2200; font-weight: 800; }
+#botR { position: absolute; right: 12px; bottom: 36px; text-align: right; padding: 10px 14px; border-radius: 12px; background: rgba(30,20,10,.55); }
+#vItem { font-size: 18px; font-weight: 800; } #vItemHint { font-size: 11px; opacity: .7; max-width: 220px; } #vSpeed { font-size: 16px; color: #8dd1ff; }
+#keys { position: absolute; left: 50%; bottom: 6px; transform: translateX(-50%); font-size: 11px; opacity: .55; white-space: nowrap; text-shadow: 0 1px 2px #000; }
+#polaroid { position: absolute; right: 180px; bottom: 90px; width: 190px; padding: 8px 8px 6px; background: #fdf6e3; color: #3b2f2a; transform: rotate(4deg); border-radius: 3px; box-shadow: 0 6px 18px rgba(0,0,0,.5); animation: fadein .3s; }
+#polaroid img { width: 100%; display: block; } #polCap { font-size: 11px; font-weight: 700; margin-top: 4px; text-align: center; }
+#btns { position: absolute; right: 12px; top: 172px; display: flex; gap: 8px; pointer-events: auto; }
+#btns button { width: 38px; height: 38px; border-radius: 50%; border: none; background: rgba(30,20,10,.6); color: #fff; font-size: 16px; cursor: pointer; }
+
+#overlay { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(ellipse at center, rgba(0,0,0,.1), rgba(0,0,0,.65)); pointer-events: none; z-index: 20; }
+#ovText { font-size: 96px; font-weight: 900; letter-spacing: 8px; text-shadow: 0 6px 0 #000; } #ovText.dead { color: #ff3b30; } #ovText.busted { color: #4d96ff; }
+#ovSub { font-size: 20px; margin-top: 8px; text-shadow: 0 2px 4px #000; max-width: 80vw; text-align: center; }
+
+.screen { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 30; background: radial-gradient(ellipse at 50% 30%, rgba(255,170,70,.45), rgba(20,10,5,.88)); overflow-y: auto; padding: 16px; }
+.card { width: min(94vw, 660px); padding: 26px 30px; border-radius: 20px; background: rgba(32,22,12,.9); border: 2px solid #e6c26b; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,.5); }
+.card.small { width: min(90vw, 360px); }
+.card h1 { margin: 0; font-size: 36px; letter-spacing: 3px; color: #ffd23f; text-shadow: 0 3px 0 #8a4b00; } .card h2 { margin: 4px 0 12px; font-size: 15px; font-weight: 600; opacity: .85; }
+.card p { line-height: 1.7; } .card ul { text-align: left; line-height: 1.8; font-size: 14px; padding-left: 20px; }
+.keys { font-size: 13px; line-height: 2.1; margin: 10px 0; } .keys span { display: inline-block; padding: 1px 8px; margin: 0 4px 0 8px; border-radius: 6px; background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.3); }
+button.big { padding: 12px 30px; font-size: 18px; font-weight: 800; border-radius: 12px; border: none; background: #ffd23f; color: #3b2200; cursor: pointer; margin: 8px 6px; }
+.card button:not(.big) { padding: 10px 18px; border-radius: 10px; border: 1px solid #e6c26b; background: transparent; color: #fff8e6; cursor: pointer; margin: 8px 4px; }
+small { display: block; opacity: .6; font-size: 12px; line-height: 1.6; margin-top: 8px; }
+#err { position: fixed; left: 0; right: 0; top: 0; padding: 14px; background: #8b0000; color: #fff; z-index: 99; font-size: 14px; }
+
+#nukeBanner { position: fixed; top: 96px; left: 50%; transform: translateX(-50%); z-index: 25; padding: 10px 22px; border-radius: 12px; background: rgba(200,20,20,.92); color: #fff; font-weight: 900; font-size: 18px; letter-spacing: 1px; box-shadow: 0 0 24px rgba(255,40,40,.7); animation: nukeblink .5s infinite alternate; pointer-events: none; }
+#nukeBanner.safe { background: rgba(30,140,60,.92); box-shadow: 0 0 24px rgba(60,255,120,.6); }
+@keyframes nukeblink { from { filter: brightness(1); } to { filter: brightness(1.35); } }
+#flash { position: fixed; inset: 0; background: #fff; opacity: 0; z-index: 30; pointer-events: none; }
+
+/* 游玩时完全隐藏鼠标指针（含 HUD 上方） */
+body.nocursor, body.nocursor * { cursor: none !important; }
+
+/* ---- 聊天气泡 / 在线玩家 ---- */
+#bubbles { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 6; }
+.bub { position: absolute; transform: translate(-50%, -100%); max-width: 230px; padding: 7px 12px; border-radius: 14px; background: #fffdf5; color: #2b2116; font-size: 14px; font-weight: 600; line-height: 1.35; text-align: center; word-break: break-word; box-shadow: 0 2px 8px rgba(0,0,0,.35); display: none; }
+.bub::after { content: ''; position: absolute; left: 50%; bottom: -7px; margin-left: -7px; border: 7px solid transparent; border-bottom: 0; border-top-color: #fffdf5; }
+.ptag { position: absolute; transform: translate(-50%, -100%); font-size: 12px; font-weight: 800; color: #fff; text-shadow: 0 1px 3px #000, 0 0 6px #000; white-space: nowrap; display: none; }
+#roomPanel { position: absolute; right: 12px; top: 224px; width: 178px; padding: 8px 10px; border-radius: 12px; background: rgba(30,20,10,.58); font-size: 12px; line-height: 1.4; }
+#roomPanel .rhead { display: flex; justify-content: space-between; align-items: baseline; } #roomPanel .rhead span { color: #8dff9b; font-weight: 700; }
+#roomPanel .rmode { font-size: 10px; opacity: .6; margin-bottom: 4px; }
+#rList { list-style: none; margin: 0; padding: 0; max-height: 170px; overflow: hidden; }
+#rList li { display: flex; align-items: center; gap: 6px; padding: 2px 0; } #rList li i { width: 9px; height: 9px; border-radius: 50%; border: 1px solid rgba(255,255,255,.7); flex: none; }
+#rList li span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } #rList li em { font-style: normal; font-size: 10px; background: #ffd23f; color: #3b2200; border-radius: 6px; padding: 0 5px; }
+#chatLog { margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255,230,160,.25); max-height: 130px; overflow: hidden; word-break: break-word; }
+#chatLog b { color: #ffd23f; margin-right: 6px; } #chatLog b::after { content: '：'; } #chatLog .old { opacity: .45; } #chatLog:empty { display: none; }
+#chatBox { position: fixed; left: 50%; bottom: 64px; transform: translateX(-50%); width: min(520px, 86vw); z-index: 40; }
+#chatBox input { width: 100%; box-sizing: border-box; padding: 11px 16px; border-radius: 22px; border: 2px solid #ffd23f; background: rgba(30,20,10,.88); color: #fff; font-size: 15px; outline: none; }
+.net { margin: 10px 0 4px; display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: center; font-size: 13px; }
+.net label { display: flex; align-items: center; gap: 6px; } .net input { width: 120px; padding: 6px 10px; border-radius: 8px; border: 1px solid #e6c26b; background: rgba(0,0,0,.35); color: #fff; font-size: 13px; }
+.net input#srvIn { width: 170px; } .net small { flex-basis: 100%; opacity: .6; font-size: 11px; line-height: 1.4; }
