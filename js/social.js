@@ -5,7 +5,7 @@ const Social = {
   init() {
     const sv = k => { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } };
     $('nameIn').value = sv('pc_name') || '游客' + Math.floor(100 + Math.random() * 900);
-    $('roomIn').value = sv('pc_room') || 'lobby'; $('srvIn').value = sv('pc_srv');
+    $('srvIn').value = sv('pc_srv'); if (/^https?:$/.test(location.protocol)) $('srvLabel').style.display = 'none';   // 网页版：所有人固定进同一房间，自动连本服务器
     Net.getState = () => {
       const P = G.player, v = P.state === 'ride' && P.vehicle ? P.vehicle : null, r = x => Math.round(x * 100) / 100;
       return { x: r(P.x), y: r(P.y), z: r(P.z), yaw: r(P.yaw), anim: r(P.anim), mv: r(P.moveAmt), run: r(P.runAmt), air: !!P.air, look: P.look,
@@ -20,8 +20,8 @@ const Social = {
   },
   join() {
     const v = id => $(id).value.trim();
-    try { localStorage.setItem('pc_name', v('nameIn')); localStorage.setItem('pc_room', v('roomIn')); localStorage.setItem('pc_srv', v('srvIn')); } catch (e) {}
-    Net.join(v('roomIn'), v('nameIn'), v('srvIn')); this.bubbles.clear(); this.renderRoom();
+    try { localStorage.setItem('pc_name', v('nameIn')); localStorage.setItem('pc_srv', v('srvIn')); } catch (e) {}
+    Net.join('lobby', v('nameIn'), v('srvIn')); this.bubbles.clear(); this.renderRoom();
   },
   openChat() {
     if (!G || G.phase !== 'play' || G.paused || this.open) return;
@@ -38,7 +38,6 @@ const Social = {
   submit(t) {
     let m;
     if ((m = /^\/name\s+(.+)/.exec(t))) { Net.rename(m[1]); $('nameIn').value = Net.name; try { localStorage.setItem('pc_name', Net.name); } catch (e) {} popup('昵称已改为：' + Net.name); }
-    else if ((m = /^\/room\s+(\S+)/.exec(t))) { $('roomIn').value = m[1]; this.join(); popup('已进入房间：' + Net.room); }
     else Net.chat(t);
   },
   addBubble(id, text) { this.bubbles.set(id, { text, t0: performance.now(), dur: Math.min(13000, 5500 + text.length * 160) }); },
