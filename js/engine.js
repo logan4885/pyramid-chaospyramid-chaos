@@ -530,7 +530,7 @@ class Renderer {
     this.batch = { buf, count: n };
   }
   resize(scale = 1) {
-    const c = this.canvas, dpr = Math.min(window.devicePixelRatio || 1, 1.5) * scale;
+    const c = this.canvas, dpr = Math.min(window.devicePixelRatio || 1, this.dprCap || 1.5) * scale;
     const w = Math.max(2, Math.floor(c.clientWidth * dpr)), h = Math.max(2, Math.floor(c.clientHeight * dpr));
     if (c.width !== w || c.height !== h) { c.width = w; c.height = h; }
   }

@@ -31,7 +31,7 @@ const Snd = {
     const c = this.ctx; if (this.mg) return;
     this.mg = c.createGain(); this.mg.gain.value = this.mute ? 0 : 0.5;
     const comp = c.createDynamicsCompressor(); this.mg.connect(comp); comp.connect(c.destination);
-    this.step = 0; this.nextT = c.currentTime + 0.1;
+    this.mstep = 0; this.nextT = c.currentTime + 0.1;
     const HA = [12, null, 13, 12, null, 16, null, 13, 12, null, 10, null, 8, null, 7, null];
     const HB = [12, 13, 16, 17, 16, 13, 12, null, 8, null, 10, 12, null, null, 13, null];
     const BASS = { 0: 0, 3: 0, 6: 7, 8: 0, 11: 3, 14: 5 };
@@ -67,7 +67,7 @@ const Snd = {
       const sd = 60 / (126 + Math.min(5, Math.floor(G && G.heat || 0)) * 6) / 4, now = c.currentTime;
       if (this.nextT < now - 0.5) this.nextT = now + 0.05;
       const want = this.mute ? 0 : (G && G.paused ? 0.15 : 0.5); this.mg.gain.setTargetAtTime(want, now, 0.1);
-      while (this.nextT < now + 0.3) { if (!this.mute) play(this.step, this.nextT, sd); this.step = (this.step + 1) & 63; this.nextT += sd; }
+      while (this.nextT < now + 0.3) { if (!this.mute) play(this.mstep, this.nextT, sd); this.mstep = (this.mstep + 1) & 63; this.nextT += sd; }
     }, 60);
   },
   setMute(m) { this.mute = m; if (this.wind) this.wind.gain.value = m ? 0 : 0.18; if (this.mg) this.mg.gain.value = m ? 0 : 0.5; $('btnMute').textContent = m ? '🔇' : '🔊'; },
@@ -502,12 +502,12 @@ function loop(now) {
   if (G.phase === 'play' && !G.paused) update(dt);
   render();
 }
-function lockPointer() { if (G && G.noLock) return; try { const r = $('gl').requestPointerLock(); if (r && r.catch) r.catch(() => { if (G) G.noLock = true; }); } catch (e) { if (G) G.noLock = true; } }
+function lockPointer() { if (G && G.noLock) return; if (typeof Touch !== 'undefined' && Touch.on) return; try { const r = $('gl').requestPointerLock(); if (r && r.catch) r.catch(() => { if (G) G.noLock = true; }); } catch (e) { if (G) G.noLock = true; } }
 function setPaused(p) { if (!G || G.phase !== 'play' || G.paused === p) return; G.paused = p; $('screenPause').classList.toggle('hidden', !p); if (p) { Object.keys(K).forEach(k => K[k] = false); G.jumpReq = G.eReq = G.fReq = G.flopReq = false; mouse.dx = mouse.dy = 0; } }
 function startGame() {
   Snd.init(); Snd.setMute(Snd.mute); newGame(); Social.join();
   $('screenMenu').classList.add('hidden'); $('screenPause').classList.add('hidden'); $('hud').classList.remove('hidden');
-  popup('WASD 移动 · 鼠标看 · Shift 冲刺 · 空格 跳 · E 交互/上下车 · F 用道具 · R 摔倒 · G 抓人/扔人', 'narr');
+  popup(Touch.on ? '左边摇杆移动 · 右边拖动转视角 · 右下角按钮：跳/互动/道具/抓人' : 'WASD 移动 · 鼠标看 · Shift 冲刺 · 空格 跳 · E 交互/上下车 · F 用道具 · R 摔倒 · G 抓人/扔人', 'narr');
   popup('先去捡前面那个发光的方块（自拍杆）。', 'narr');
 }
 function bindInput() {
@@ -543,7 +543,7 @@ function bindInput() {
 }
 function boot() {
   try { renderer = new Renderer($('gl')); } catch (e) { $('err').textContent = '无法初始化 WebGL：' + e.message; $('err').classList.remove('hidden'); return; }
-  bindInput(); newGame(); G.phase = 'menu'; Social.init();          // 菜单背景
+  bindInput(); newGame(); G.phase = 'menu'; Social.init(); Touch.init();          // 菜单背景
   G.cam.px = 0; G.cam.py = 8; G.cam.pz = 112; G.cam.pitch = -0.1;
   requestAnimationFrame(loop);
   window.__pc = { step: dt => update(dt), get G() { return G; }, get W() { return W; }, startGame, K, startRag, hitHuman, chaos, addHeat, challengeDone, busted, die, giveItem, interact, useItem, mount, takeSelfie, Net, Social };
