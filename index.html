@@ -2,9 +2,12 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1b1410">
 <title>PYRAMID CHAOS · MVP02</title>
-<link rel="stylesheet" href="css/style.css?v=20261117j">
+<link rel="stylesheet" href="css/style.css?v=20261117k">
 </head>
 <body>
 <canvas id="gl"></canvas>
@@ -28,6 +31,7 @@
   <div id="botR"><div id="vItem"></div><div id="vItemHint"></div><div id="vSpeed"></div></div>
   <div id="keys">WASD 移动 · Shift 冲刺/加速 · 空格 跳 · E 交互/上下车 · F 用道具/喇叭 · R 摔倒 · T 找回角色 · Enter 聊天 · F3 调试 · Esc 暂停</div>
   <div id="polaroid" class="hidden"><img id="polImg" alt=""><div id="polCap"></div></div>
+  <div id="tctl" class="hidden"><div id="stickBase"><i id="stickKnob"></i></div><div id="tbtns"><b class="tb" data-a="jump" id="tbJump">跳</b><b class="tb" data-a="e">互动<br><small>上下车</small></b><b class="tb" data-a="f">道具</b><b class="tb" data-a="g">抓/扔</b><b class="tb sm" data-a="r">摔倒</b><b class="tb sm" data-a="run" id="tbRun">冲刺</b><b class="tb sm" data-a="chat">💬</b></div></div>
   <div id="btns"><button id="btnMute">🔊</button><button id="btnPause">⏸</button></div>
 </div>
 
@@ -38,13 +42,14 @@
 <div id="screenMenu" class="screen">
   <div class="card">
     <h1>PYRAMID CHAOS</h1>
-    <h2>金字塔大乱斗 · MVP02（第三人称搞笑沙盒）<small style="font-size:11px;opacity:.6"> build 20261117j</small></h2>
+    <h2>金字塔大乱斗 · MVP02（第三人称搞笑沙盒）<small style="font-size:11px;opacity:.6"> build 20261117k</small></h2>
     <p>你是一位<b>不太守规矩的游客</b>。景区很大，规则很少。骑骆驼、开观光车、坐火箭行李车、用喷射背包飞上金字塔——然后向保安解释这一切。</p>
     <ul>
       <li>撞飞路人、砸东西、偷骆驼会提高<b>通缉星级</b>；<b>G 键抓人、再按 G 扔出去</b>！通缉升级：1★保安步行 → 2★骑骆驼 → 3★喷气背包 → 4★轰炸机 → 5★核弹</li>
       <li>连击得分，打赏变现金；<b>空中自拍</b>、金字塔入镜、被追着自拍，倍率爆炸</li>
       <li>10 个自选挑战，没有结局，没有倒计时，只有荒诞</li>
     </ul>
+    <div class="tkeys">📱 手机：左半屏拖动=摇杆移动 · 右半屏拖动=转视角 · 右下按钮：跳 / 互动·上下车 / 道具 / 抓人·扔 / 摔倒 / 冲刺 / 聊天。建议<b>横屏</b>游玩。</div>
     <div class="keys"><span>WASD</span>移动 <span>鼠标</span>转镜头 <span>Shift</span>冲刺/加速 <span>空格</span>跳/刹车/喷射 <span>E</span>交互·上下车 <span>F</span>用道具 <span>R</span>摔倒 <span>G</span>抓人/扔人 <span>Esc</span>暂停</div>
     <div class="net">
       <label>昵称<input id="nameIn" maxlength="12" autocomplete="off"></label>
@@ -52,7 +57,7 @@
       <small>同一房间号的玩家互相可见（头顶气泡聊天 · Enter 打字）。不填服务器 = 同一浏览器的多个标签页联机；跨电脑请运行 <b>node server.js</b> 后用 http://IP:8787 打开。</small>
     </div>
     <button id="btnStart" class="big">开始作妖</button>
-    <small>景区、人物与事件均为虚构；本游戏讽刺混乱的旅游体验，不针对任何真实群体。当前版本仅支持键鼠。</small>
+    <small>景区、人物与事件均为虚构；本游戏讽刺混乱的旅游体验，不针对任何真实群体。支持电脑键鼠和手机触屏（建议横屏）。</small>
   </div>
 </div>
 <div id="screenPause" class="screen hidden"><div class="card small"><h2>已暂停</h2><button id="btnResume" class="big">继续</button><button id="btnRestart">重新开始</button></div></div>
@@ -60,14 +65,15 @@
 
 <div id="nukeBanner" class="hidden"></div><div id="flash"></div>
 <div id="dbg" style="position:fixed;left:8px;bottom:8px;z-index:50;font:11px/1.35 monospace;color:#0f0;background:rgba(0,0,0,.65);padding:6px 8px;border-radius:6px;white-space:pre;display:none;pointer-events:none"></div>
-<script src="js/engine.js?v=20261117j"></script>
-<script src="js/data.js?v=20261117j"></script>
-<script src="js/world.js?v=20261117j"></script>
-<script src="js/entities.js?v=20261117j"></script>
-<script src="js/fx.js?v=20261117j"></script>
-<script src="js/police.js?v=20261117j"></script>
-<script src="js/net.js?v=20261117j"></script>
-<script src="js/social.js?v=20261117j"></script>
-<script src="js/game.js?v=20261117j"></script>
+<script src="js/engine.js?v=20261117k"></script>
+<script src="js/data.js?v=20261117k"></script>
+<script src="js/world.js?v=20261117k"></script>
+<script src="js/entities.js?v=20261117k"></script>
+<script src="js/fx.js?v=20261117k"></script>
+<script src="js/police.js?v=20261117k"></script>
+<script src="js/net.js?v=20261117k"></script>
+<script src="js/social.js?v=20261117k"></script>
+<script src="js/touch.js?v=20261117k"></script>
+<script src="js/game.js?v=20261117k"></script>
 </body>
 </html>
