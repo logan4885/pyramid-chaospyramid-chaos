@@ -512,7 +512,7 @@ function loop(now) {
   if (Cust.open) Cust.camUpdate(dt);
   render();
 }
-function lockPointer() { if (G && G.noLock) return; if (typeof Touch !== 'undefined' && Touch.on) return; try { const r = $('gl').requestPointerLock(); if (r && r.catch) r.catch(() => { if (G) G.noLock = true; }); } catch (e) { if (G) G.noLock = true; } }
+function lockPointer() { if (G && G.lockErrT && performance.now() - G.lockErrT < 1300) return; if (typeof Touch !== 'undefined' && Touch.on) return; try { const r = $('gl').requestPointerLock(); if (r && r.catch) r.catch(() => { if (G) G.lockErrT = performance.now(); }); } catch (e) { if (G) G.lockErrT = performance.now(); } }
 function setPaused(p) { if (!G || G.phase !== 'play' || G.paused === p) return; G.paused = p; $('screenPause').classList.toggle('hidden', !p); if (p) { Object.keys(K).forEach(k => K[k] = false); G.jumpReq = G.eReq = G.fReq = G.flopReq = false; mouse.dx = mouse.dy = 0; } }
 function startGame() {
   Snd.init(); Snd.setMute(Snd.mute); newGame(); Social.join();
@@ -541,10 +541,11 @@ function bindInput() {
   addEventListener('blur', () => { if (G && G.phase === 'play') setPaused(true); });
   document.addEventListener('visibilitychange', () => { if (document.hidden && G) setPaused(true); });
   document.addEventListener('pointerlockchange', () => { if (!G) return; if (document.pointerLockElement) G.hadLock = true; else if (G.hadLock && G.phase === 'play' && !G.paused && !G.chatOpen && performance.now() - (G.chatT || -9999) > 900) setPaused(true); });
-  document.addEventListener('pointerlockerror', () => { if (G) G.noLock = true; });
+  document.addEventListener('pointerlockerror', () => { if (G) G.lockErrT = performance.now(); });
   let drag = false; const cv = $('gl');
-  cv.addEventListener('mousedown', e => { if (G && G.chatOpen) Social.close(false); drag = true; if (G && G.phase === 'play' && !G.paused && !document.pointerLockElement) lockPointer(); if (e.button === 0 && G && G.held && document.pointerLockElement) G.gReq = true; }); addEventListener('mouseup', () => { drag = false; });
-  addEventListener('mousemove', e => { if (!G || G.paused) return; if (document.pointerLockElement || drag) { mouse.dx += e.movementX; mouse.dy += e.movementY; } });
+  cv.addEventListener('mousedown', e => { if (G && G.chatOpen) Social.close(false); drag = true; if (G && G.phase === 'play' && !G.paused && !document.pointerLockElement) lockPointer(); if (e.button === 0 && G && G.held && document.pointerLockElement) G.gReq = true; }); addEventListener('mouseup', () => { drag = false; }); addEventListener('blur', () => { drag = false; }); document.addEventListener('mouseleave', () => { drag = false; });
+  addEventListener('mousemove', e => { if (!G || G.paused) return; if (drag && !e.buttons && !document.pointerLockElement) drag = false;
+    if (document.pointerLockElement || drag) { const mx = e.movementX, my = e.movementY; if (Math.abs(mx) < 250 && Math.abs(my) < 250) { mouse.dx += mx; mouse.dy += my; } } });   // 丢弃浏览器偶发的巨大跳变
   $('btnCust').onclick = () => Cust.show(); $('btnCust2').onclick = () => Cust.show();
   $('btnStart').onclick = () => { startGame(); lockPointer(); };
   $('btnResume').onclick = () => { lockPointer(); Snd.init(); setPaused(false); };
