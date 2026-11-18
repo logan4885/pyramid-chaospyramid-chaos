@@ -135,17 +135,17 @@ function chaos(pts, label) {
 }
 function addHeat(v) {
   const before = Math.floor(G.heat); G.heat = Math.min(5, G.heat + v); G.unseenT = 0;
-  if (Math.floor(G.heat) > before) { popup('通缉等级 ' + '★'.repeat(Math.floor(G.heat)), 'bad'); Snd.siren(); }
+  if (Math.floor(G.heat) > before) { popup(L('通缉等级 ') + '★'.repeat(Math.floor(G.heat)), 'bad'); Snd.siren(); }
 }
 function shake(a) { if (G) G.cam.shake = Math.max(G.cam.shake, a); }
-function narrate(key, txt) { if (G.narr[key]) return; G.narr[key] = 1; popup('旁白：' + txt, 'narr'); }
+function narrate(key, txt) { if (G.narr[key]) return; G.narr[key] = 1; popup(L('旁白：') + txt, 'narr'); }
 function challengeDone(id) {
   if (G.done[id]) return; const c = CHALLENGES.find(x => x.id === id); G.done[id] = true;
-  G.score += c.score; G.money += c.cash; popup(`🏆 挑战完成：${c.t}  +$${c.cash}`, 'good'); Snd.good(); renderChallenges();
+  G.score += c.score; G.money += c.cash; popup(L('🏆 挑战完成：{0}  +${1}', c.t, c.cash), 'good'); Snd.good(); renderChallenges();
   if (G.score > G.best) { G.best = G.score; try { localStorage.setItem('pc_best', G.best); } catch (e) {} }
 }
 function renderChallenges() {
-  $('chal').innerHTML = '<h4>挑战</h4>' + CHALLENGES.map(c => `<div class="${G.done[c.id] ? 'done' : ''}" title="${c.d}">${G.done[c.id] ? '✅' : '⬜'} ${c.t}</div>`).join('');
+  $('chal').innerHTML = L('<h4>挑战</h4>') + CHALLENGES.map(c => `<div class="${G.done[c.id] ? 'done' : ''}" title="${c.d}">${G.done[c.id] ? '✅' : '⬜'} ${c.t}</div>`).join('');
 }
 
 /* ---------------- 玩家 ---------------- */
@@ -166,18 +166,18 @@ function interact() {
     if (G.money < CFG.shopPrice) { popup(pickOne(HUMOR.shopFail), 'bad'); Snd.bad(); return; }
     G.money -= CFG.shopPrice; const k = pickOne(['horn', 'jetpack', 'banana', 'jetpack']); giveItem(k); popup(pickOne(HUMOR.shopOk) + `（-$${CFG.shopPrice}）`); Snd.coin();
   } else {
-    if (G.time < G.rentUntil) { popup('“你已经租了！骆驼记得你。”'); return; }
-    if (G.money < CFG.rentPrice) { popup('“$15！骆驼不接受情怀。”', 'bad'); Snd.bad(); return; }
-    G.money -= CFG.rentPrice; G.rentUntil = G.time + CFG.rentTime; popup('“租骆驼 $15，两分钟内偷骆驼不算偷！”', 'good'); Snd.coin();
+    if (G.time < G.rentUntil) { popup(L('“你已经租了！骆驼记得你。”')); return; }
+    if (G.money < CFG.rentPrice) { popup(L('“$15！骆驼不接受情怀。”'), 'bad'); Snd.bad(); return; }
+    G.money -= CFG.rentPrice; G.rentUntil = G.time + CFG.rentTime; popup(L('“租骆驼 $15，两分钟内偷骆驼不算偷！”'), 'good'); Snd.coin();
   }
 }
-function giveItem(k) { G.item = { type: k, ammo: ITEMS[k].ammo }; if (k === 'jetpack') G.fuel = 100; popup(`${ITEMS[k].icon} 获得：${ITEMS[k].name}（${ITEMS[k].hint}）`, 'good'); Snd.pop(); }
+function giveItem(k) { G.item = { type: k, ammo: ITEMS[k].ammo }; if (k === 'jetpack') G.fuel = 100; popup(L('{0} 获得：{1}（{2}）', ITEMS[k].icon, ITEMS[k].name, ITEMS[k].hint), 'good'); Snd.pop(); }
 function mount(v) {
   const P = G.player; if (G.mountCd > 0) return;
   v.rider = P; P.vehicle = v; P.state = 'ride'; P.selfie = false; G.mountCd = 0.4; Snd.click();
   if (v.kind === 'camel' && G.time > G.rentUntil) {
     const witness = G.humans.some(h => (h.kind === 'merchant' || h.kind === 'guard') && h.state === 'walk' && Math.hypot(h.x - P.x, h.z - P.z) < 45);
-    if (witness) { popup(pickOne(HUMOR.stealCamel), 'bad'); addHeat(1.05); chaos(40, '偷骆驼'); }
+    if (witness) { popup(pickOne(HUMOR.stealCamel), 'bad'); addHeat(1.05); chaos(40, L('偷骆驼')); }
   }
 }
 function dismount() {
@@ -191,7 +191,7 @@ function useItem() {
   const P = G.player; if (P.state === 'rag') return;
   const it = G.item;
   if (P.state === 'ride' && (!it || it.type !== 'selfie')) { vehicleHonk(); return; }
-  if (!it) { popup('手里没东西。去捡个道具（亮闪闪的方块）。'); return; }
+  if (!it) { popup(L('手里没东西。去捡个道具（亮闪闪的方块）。')); return; }
   if (it.type === 'selfie') takeSelfie();
   else if (it.type === 'horn') {
     if (P.state !== 'walk') return;
@@ -202,7 +202,7 @@ function useItem() {
     }
     Social.hitNear(P.x, P.z, 7, (dx, dz, d) => [dx / (d || 1) * 10, 7, dz / (d || 1) * 10]);
     for (const p of G.props) if (Math.hypot(p.x - P.x, p.z - P.z) < 8) launchProp(p, [(p.x - P.x) * 1.2, 8, (p.z - P.z) * 1.2], true);
-    addHeat(0.3); if (--it.ammo <= 0) { G.item = null; popup('喇叭用完了（耳鸣还在）'); }
+    addHeat(0.3); if (--it.ammo <= 0) { G.item = null; popup(L('喇叭用完了（耳鸣还在）')); }
   } else if (it.type === 'banana') {
     if (P.state !== 'walk') return;
     const f = [-Math.sin(P.yaw), 0, -Math.cos(P.yaw)]; G.bananas.push({ x: P.x + f[0] * 1.2, z: P.z + f[2] * 1.2, y: P.y, life: 60 }); popup(pickOne(HUMOR.banana)); Snd.pop();
@@ -227,7 +227,7 @@ function takeSelfie() {
   if (G.heat >= 3) add('wanted');
   if (P.y > 50 && Math.hypot(P.x - PYR.x, P.z - PYR.z) < 14) add('summit');
   Snd.shutter(); G.snapReq = { tags };
-  chaos(Math.round(100 * mult), '自拍 ' + (tags.length ? '[' + tags.join(' · ') + ']' : '[普通游客照]'));
+  chaos(Math.round(100 * mult), L('自拍 ') + (tags.length ? '[' + tags.join(' · ') + ']' : L('[普通游客照]')));
 }
 function flop() {
   const P = G.player; if (P.state !== 'walk') return;
@@ -258,14 +258,14 @@ function updatePlayer(dt) {
     const c = P.carrier;
     if (!c || !Social.remotes.has(P.carrierId)) { P.state = 'walk'; P.carrier = null; P.air = true; startRag(P, [0, 2, 0]); return; }
     const H = holdPoint(c); P.x = H[0]; P.z = H[2]; P.y = H[1] - 1.55 * (P.look.scale || 1); P.yaw = c.yaw + 1.57; P.moveAmt = 0; P.runAmt = 0; P.vx = P.vz = P.vy = 0; P.air = true;
-    if (G.jumpReq) { G.jumpReq = false; P.struggle = (P.struggle || 0) + 1; shake(0.15); if (P.struggle >= 4) { P.struggle = 0; Net.sendEv(P.carrierId, 'free'); P.state = 'walk'; P.carrier = null; P.y = groundAt(P.x, P.z, P.y + 1); popup('你挣脱了！'); } }
+    if (G.jumpReq) { G.jumpReq = false; P.struggle = (P.struggle || 0) + 1; shake(0.15); if (P.struggle >= 4) { P.struggle = 0; Net.sendEv(P.carrierId, 'free'); P.state = 'walk'; P.carrier = null; P.y = groundAt(P.x, P.z, P.y + 1); popup(L('你挣脱了！')); } }
     return;
   }
   if (P.state === 'rag') {
     stepRag(P, dt);
     const move = K.KeyW || K.KeyA || K.KeyS || K.KeyD || K.Space;
-    if (canGetUp(P) || (P.rag.t > 1.0 && move && P.rag.rest > 0.2)) { recoverHuman(P); popup('你站了起来，假装什么都没发生'); }
-    if (P.impact > 13) { hurt(Math.min(35, (P.impact - 11) * 1.4)); popup('💥 疼！', 'bad'); P.impact = 0; Snd.crash(); } else P.impact = Math.max(0, P.impact - 1);
+    if (canGetUp(P) || (P.rag.t > 1.0 && move && P.rag.rest > 0.2)) { recoverHuman(P); popup(L('你站了起来，假装什么都没发生')); }
+    if (P.impact > 13) { hurt(Math.min(35, (P.impact - 11) * 1.4)); popup(L('💥 疼！'), 'bad'); P.impact = 0; Snd.crash(); } else P.impact = Math.max(0, P.impact - 1);
     return;
   }
   if (P.state === 'ride' || P.state === 'rag') G.jumpReq = false;
@@ -291,7 +291,7 @@ function updatePlayer(dt) {
   // 自动拾取
   for (const p of G.pickups) if (p.active && Math.hypot(p.x - P.x, p.z - P.z) < 1.8 && Math.abs(P.y - 0) < 6) { p.active = false; p.t = 40; giveItem(p.kind); }
   if (P.y >= PYR.top - 6 && Math.hypot(P.x - PYR.x, P.z - PYR.z) < 14) { challengeDone('summit'); }
-  if (P.y > 8 && !G.narr.air) narrate('air', '这位游客正在尝试不属于人类的高度。');
+  if (P.y > 8 && !G.narr.air) narrate('air', L('这位游客正在尝试不属于人类的高度。'));
 }
 
 /* ---------------- 通缉 / 刷怪 ---------------- */
@@ -303,7 +303,7 @@ function updateWanted(dt) {
     if (G.unseenT > CFG.heatDecayDelay) G.heat = Math.max(0, G.heat - CFG.heatDecay * dt);
   }
   if (stars >= 3) G.reached3 = true;
-  if (G.heat <= 0.001 && G.reached3) { G.reached3 = false; challengeDone('escape'); popup('通缉解除：你消失在了人群里', 'good'); }
+  if (G.heat <= 0.001 && G.reached3) { G.reached3 = false; challengeDone('escape'); popup(L('通缉解除：你消失在了人群里'), 'good'); }
   G.spawnT -= dt;
   const guards = G.humans.filter(h => h.kind === 'guard'), want = stars > 0 ? Math.min(9, 4 + stars * 2) : 0;
   if (G.spawnT <= 0 && guards.length < want && !G.overlay) {
@@ -334,11 +334,11 @@ function updateBananas(dt) {
     for (const h of ents) {
       if (h.state !== 'walk' || Math.hypot(h.x - b.x, h.z - b.z) > 0.85 || Math.abs(h.y - b.y) > 1) continue;
       startRag(h, [h.vx * 1.6 + (Math.random() - 0.5) * 3, 5.5, h.vz * 1.6 + (Math.random() - 0.5) * 3]); used = true;
-      if (h === G.player) popup('你踩到了自己的香蕉皮。逻辑自洽。'); else { chaos(60, '香蕉皮：经典永不过时'); if (h.kind === 'guard') addHeat(0.2); }
+      if (h === G.player) popup(L('你踩到了自己的香蕉皮。逻辑自洽。')); else { chaos(60, L('香蕉皮：经典永不过时')); if (h.kind === 'guard') addHeat(0.2); }
       G.bowl.push(G.time); Snd.boing(); break;
     }
     if (!used) for (const v of G.vehicles) if (Math.hypot(v.x - b.x, v.z - b.z) < VEH[v.kind].r + 0.6 && !v.air) {
-      used = true; v.sp *= 0.4; shake(0.3); if (v.rider === G.player) { chaos(40, '载具打滑'); if (Math.abs(v.sp) > 3) ejectRider(v, [-Math.sin(v.h) * v.sp * 2, 6, -Math.cos(v.h) * v.sp * 2]); } Snd.boing(); break;
+      used = true; v.sp *= 0.4; shake(0.3); if (v.rider === G.player) { chaos(40, L('载具打滑')); if (Math.abs(v.sp) > 3) ejectRider(v, [-Math.sin(v.h) * v.sp * 2, 6, -Math.cos(v.h) * v.sp * 2]); } Snd.boing(); break;
     }
     if (used) G.bananas.splice(i, 1);
   }
@@ -391,8 +391,8 @@ function update(dt) {
   for (const p of G.pickups) if (!p.active) { p.t -= dt; if (p.t <= 0) p.active = true; }
   if (G.time - G.lastHurt > 6 && G.hp < CFG.hpMax && !G.overlay) G.hp = Math.min(CFG.hpMax, G.hp + 3 * dt);
   if (G.time - G.lastChaos > CFG.comboWindow) G.combo = 0;
-  if (G.time > 4 && !G.narr.start) narrate('start', '欢迎来到不太严肃的旅游景区。规则：没有规则（保安除外）。');
-  const rag = G.humans.filter(h => h.state === 'rag').length; if (rag >= 4) narrate('pile', '景区里躺平的人越来越多，这被称为“集体旅行疲劳”。');
+  if (G.time > 4 && !G.narr.start) narrate('start', L('欢迎来到不太严肃的旅游景区。规则：没有规则（保安除外）。'));
+  const rag = G.humans.filter(h => h.state === 'rag').length; if (rag >= 4) narrate('pile', L('景区里躺平的人越来越多，这被称为“集体旅行疲劳”。'));
   updateCamera(dt);
   renderHud(dt);
 }
@@ -441,13 +441,13 @@ function render() {
   if (G.dbg) { const C2 = G.cam, f1 = v => Number.isFinite(v) ? v.toFixed(2) : String(v); $('dbg').textContent = `state=${P.state} sit=${!!P.sit} veh=${P.vehicle ? P.vehicle.kind : '-'} rag=${!!P.rag} air=${P.air}\npos=${f1(P.x)},${f1(P.y)},${f1(P.z)} yaw=${f1(P.yaw)}\nanim=${f1(P.anim)} mv=${f1(P.moveAmt)} run=${f1(P.runAmt)} diz=${f1(P.dizzy)}\ncam d=${f1(Math.hypot(C2.px - P.x, C2.py - P.y - 1.2, C2.pz - P.z))} free=${f1(C2.free)} lift=${f1(C2.lift)}\ndraw=${renderer.lastDrawn} heals=${(window.__heals || []).length}`; }
   document.body.classList.toggle('nocursor', G.phase === 'play' && !G.paused && !G.overlay && !G.chatOpen);         // 游玩时隐藏鼠标指针
   renderer.frame(cam, env, dyn, FX.collect(cam));
-  if (G.snapReq) { try { $('polImg').src = renderer.canvas.toDataURL('image/jpeg', 0.55); $('polCap').textContent = G.snapReq.tags.join(' · ') || '普通游客照'; $('polaroid').classList.remove('hidden'); clearTimeout(G.polT); G.polT = setTimeout(() => $('polaroid').classList.add('hidden'), 4500); } catch (e) {} G.snapReq = null; }
+  if (G.snapReq) { try { $('polImg').src = renderer.canvas.toDataURL('image/jpeg', 0.55); $('polCap').textContent = G.snapReq.tags.join(' · ') || L('普通游客照'); $('polaroid').classList.remove('hidden'); clearTimeout(G.polT); G.polT = setTimeout(() => $('polaroid').classList.add('hidden'), 4500); } catch (e) {} G.snapReq = null; }
   // 标签
   const proj = M4.persp(cam.fov, innerWidth / innerHeight, 0.1, 700), vp = M4.mul(proj, M4.mul(M4.mul(M4.RX(-cam.pitch), M4.RY(-cam.yaw)), M4.T(-cam.x, -cam.y, -cam.z)));
   const labels = [];
   G.pickups.forEach(pk => { if (pk.active) labels.push([pk.x, 2.2, pk.z, ITEMS[pk.kind].icon + ' ' + ITEMS[pk.kind].name, 30]); });
-  G.humans.forEach(h => { if (h.kind === 'merchant') labels.push([h.x, 3.2, h.z, h.vendor === 'souvenir' ? '🛍️ 纪念品（E · $10 随机道具）' : '🐪 租骆驼（E · $15）', 25]); });
-  G.vehicles.forEach(v => { if (!v.rider && !v.ai) labels.push([v.x, v.y + (v.kind === 'camel' ? 5.2 : 3.4), v.z, '🚗 ' + VEH[v.kind].name + '（E 骑乘）', 16]); });
+  G.humans.forEach(h => { if (h.kind === 'merchant') labels.push([h.x, 3.2, h.z, h.vendor === 'souvenir' ? L('🛍️ 纪念品（E · $10 随机道具）') : L('🐪 租骆驼（E · $15）'), 25]); });
+  G.vehicles.forEach(v => { if (!v.rider && !v.ai) labels.push([v.x, v.y + (v.kind === 'camel' ? 5.2 : 3.4), v.z, '🚗 ' + VEH[v.kind].name + L('（E 骑乘）'), 16]); });
   let n = 0;
   for (const l of labels) {
     const d = Math.hypot(l[0] - P.x, l[2] - P.z); if (d > l[4]) continue;
@@ -468,21 +468,21 @@ function renderHud(dt) {
   set('m', G.money, v => $('vMoney').textContent = '$' + v);
   set('h', Math.round(G.hp), v => { $('vHp').textContent = v; $('bHp').style.width = v + '%'; });
   set('s', G.score, v => $('vScore').textContent = v.toLocaleString());
-  set('b', G.best, v => $('vBest').textContent = '最高 ' + v.toLocaleString());
-  set('cb', G.combo, v => { $('vCombo').textContent = v > 1 ? '×' + v + ' 连击' : ''; });
+  set('b', G.best, v => $('vBest').textContent = L('最高 ') + v.toLocaleString());
+  set('cb', G.combo, v => { $('vCombo').textContent = v > 1 ? '×' + v + L(' 连击') : ''; });
   set('st', Math.floor(G.heat), v => { $('vStars').textContent = '★'.repeat(v) + '☆'.repeat(5 - v); $('vStars').classList.toggle('on', v > 0); });
   set('hf', Math.round(G.heat * 20), () => $('bHeat').style.width = Math.min(100, (G.heat % 1) * 100 + (Math.floor(G.heat) >= 5 ? 100 : 0)) + '%');
-  const it = G.item, itxt = it ? `${ITEMS[it.type].icon} ${ITEMS[it.type].name}${it.type === 'jetpack' ? ' ' + Math.round(G.fuel) + '%' : it.ammo !== Infinity ? ' ×' + it.ammo : ''}` : '— 空手 —';
-  set('it', itxt, v => $('vItem').textContent = v); set('ih', it ? ITEMS[it.type].hint : '去捡发光的方块', v => $('vItemHint').textContent = v);
+  const it = G.item, itxt = it ? `${ITEMS[it.type].icon} ${ITEMS[it.type].name}${it.type === 'jetpack' ? ' ' + Math.round(G.fuel) + '%' : it.ammo !== Infinity ? ' ×' + it.ammo : ''}` : L('— 空手 —');
+  set('it', itxt, v => $('vItem').textContent = v); set('ih', it ? ITEMS[it.type].hint : L('去捡发光的方块'), v => $('vItemHint').textContent = v);
   const veh = P.state === 'ride' ? P.vehicle : null;
   const sp = veh ? Math.round(Math.abs(veh.sp) * 3.6) + ' km/h' + (veh.kind === 'sled' ? '  ⛽' + Math.round(veh.fuel) + '%' : '') : '';
   set('sp', sp, v => $('vSpeed').textContent = v);
   const near = nearestInteract(), pr = $('prompt');
   let ptxt = '';
-  if (veh) ptxt = 'E 下车' + (veh.kind === 'camel' ? ' · 空格 跳' : ' · 空格 刹车') + ' · Shift 加速 · F 喇叭/自拍';
-  else if (G.held) ptxt = 'G / 鼠标左键：把TA扔出去！';
-  else if (near) ptxt = near.type === 'veh' ? `E 骑乘 ${VEH[near.o.kind].name}` : near.o.vendor === 'souvenir' ? `E 买随机道具 $${CFG.shopPrice}` : `E 租骆驼 $${CFG.rentPrice}`;
-  else if (nearestGrab()) ptxt = 'G 抓起 TA';
+  if (veh) ptxt = L('E 下车') + (veh.kind === 'camel' ? L(' · 空格 跳') : L(' · 空格 刹车')) + L(' · Shift 加速 · F 喇叭/自拍');
+  else if (G.held) ptxt = L('G / 鼠标左键：把TA扔出去！');
+  else if (near) ptxt = near.type === 'veh' ? L('E 骑乘 {0}', VEH[near.o.kind].name) : near.o.vendor === 'souvenir' ? L('E 买随机道具 ${0}', CFG.shopPrice) : L('E 租骆驼 ${0}', CFG.rentPrice);
+  else if (nearestGrab()) ptxt = L('G 抓起 TA');
   set('pr', ptxt, v => { pr.textContent = v; pr.classList.toggle('hidden', !v); });
   const ov = G.overlay; set('ov', ov ? ov.text + ov.sub : '', () => { const el = $('overlay'); el.classList.toggle('hidden', !ov); if (ov) { $('ovText').textContent = ov.text; $('ovText').className = ov.kind; $('ovSub').textContent = ov.sub; } });
   drawMinimap();
@@ -517,8 +517,8 @@ function setPaused(p) { if (!G || G.phase !== 'play' || G.paused === p) return; 
 function startGame() {
   Snd.init(); Snd.setMute(Snd.mute); newGame(); Social.join();
   $('screenMenu').classList.add('hidden'); $('screenPause').classList.add('hidden'); $('hud').classList.remove('hidden');
-  popup(Touch.on ? '左边摇杆移动 · 右边拖动转视角 · 右下角按钮：跳/互动/道具/抓人' : 'WASD 移动 · 鼠标看 · Shift 冲刺 · 空格 跳 · E 交互/上下车 · F 用道具 · R 摔倒 · G 抓人/扔人', 'narr');
-  popup('先去捡前面那个发光的方块（自拍杆）。', 'narr');
+  popup(Touch.on ? L('左边摇杆移动 · 右边拖动转视角 · 右下角按钮：跳/互动/道具/抓人') : L('WASD 移动 · 鼠标看 · Shift 冲刺 · 空格 跳 · E 交互/上下车 · F 用道具 · R 摔倒 · G 抓人/扔人'), 'narr');
+  popup(L('先去捡前面那个发光的方块（自拍杆）。'), 'narr');
 }
 function bindInput() {
   addEventListener('keydown', e => {
@@ -527,9 +527,9 @@ function bindInput() {
     if (e.code === 'Enter' || e.code === 'NumpadEnter') { if (G.phase === 'play' && !G.paused && !G.overlay) { e.preventDefault(); Social.openChat(); } return; }
     if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.code)) e.preventDefault();
     if (e.code === 'KeyM') { Snd.setMute(!Snd.mute); return; }
-    if (e.code === 'KeyQ' && !e.repeat) { const o = ['high', 'med', 'low'], q = o[(o.indexOf(renderer.q) + 1) % 3]; renderer.setQuality(q); popup('画质：' + { high: '高（阴影+光效）', med: '中', low: '低（无阴影/后期）' }[q]); return; }
+    if (e.code === 'KeyQ' && !e.repeat) { const o = ['high', 'med', 'low'], q = o[(o.indexOf(renderer.q) + 1) % 3]; renderer.setQuality(q); popup(L('画质：') + { high: L('高（阴影+光效）'), med: L('中'), low: L('低（无阴影/后期）') }[q]); return; }
     if (e.code === 'F3') { e.preventDefault(); G.dbg = !G.dbg; $('dbg').style.display = G.dbg ? 'block' : 'none'; return; }
-    if (e.code === 'KeyT' && G.phase === 'play' && !G.paused) { const P = G.player; if (P.vehicle && P.vehicle.rider === P) P.vehicle.rider = null; P.vehicle = null; P.sit = null; P.rag = null; P.state = 'walk'; P.air = false; P.vx = P.vz = P.vy = 0; P.y = groundAt(P.x, P.z, P.y + 1); sanitizeHuman(P, 'manualT'); snapCam(); popup('已把角色找回来（T）'); return; }
+    if (e.code === 'KeyT' && G.phase === 'play' && !G.paused) { const P = G.player; if (P.vehicle && P.vehicle.rider === P) P.vehicle.rider = null; P.vehicle = null; P.sit = null; P.rag = null; P.state = 'walk'; P.air = false; P.vx = P.vz = P.vy = 0; P.y = groundAt(P.x, P.z, P.y + 1); sanitizeHuman(P, 'manualT'); snapCam(); popup(L('已把角色找回来（T）')); return; }
     if (e.code === 'Escape') { if (G.paused) { lockPointer(); Snd.init(); } setPaused(!G.paused); return; }
     if (G.paused) return;
     if (!e.repeat) {
@@ -554,11 +554,12 @@ function bindInput() {
   $('btnPause').onclick = () => setPaused(true);
 }
 function boot() {
-  try { renderer = new Renderer($('gl')); } catch (e) { $('err').textContent = '无法初始化 WebGL：' + e.message; $('err').classList.remove('hidden'); return; }
+  I18N.dom();
+  try { renderer = new Renderer($('gl')); } catch (e) { $('err').textContent = L('无法初始化 WebGL：') + e.message; $('err').classList.remove('hidden'); return; }
   bindInput(); newGame(); G.phase = 'menu'; Social.init(); Touch.init();          // 菜单背景
   G.cam.px = 0; G.cam.py = 8; G.cam.pz = 112; G.cam.pitch = -0.1;
   requestAnimationFrame(loop);
   window.__pc = { step: dt => update(dt), get G() { return G; }, get W() { return W; }, startGame, K, startRag, hitHuman, chaos, addHeat, challengeDone, busted, die, giveItem, interact, useItem, mount, takeSelfie, Net, Social };
 }
-addEventListener('error', e => { const el = $('err'); if (el) { el.textContent = '脚本错误：' + e.message; el.classList.remove('hidden'); } });
+addEventListener('error', e => { const el = $('err'); if (el) { el.textContent = L('脚本错误：') + e.message; el.classList.remove('hidden'); } });
 boot();

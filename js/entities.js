@@ -190,7 +190,7 @@ function sanitizeHuman(h, why) {
   h.y = Math.max(h.y, groundAt(h.x, h.z, h.y + 1)); h.rag = null; h.sit = null; h.state = 'walk'; h.air = false;
   if (h.vehicle && h.vehicle.rider === h) h.vehicle.rider = null; h.vehicle = null;
   (window.__heals = window.__heals || []).push({ who: h.kind, bad: bad.join(','), why: why || '', t: typeof G !== 'undefined' && G ? +G.time.toFixed(1) : 0 });
-  console.warn('[自愈] 角色数值异常已修复:', bad.join(','), why || '');
+  console.warn(L('[自愈] 角色数值异常已修复:'), bad.join(','), why || '');
   return bad;
 }
 
@@ -323,9 +323,9 @@ function drawHuman(h, out, far) {
 
 /* ---------- 载具 ---------- */
 const VEH = {
-  camel: { accel: 15, max: 12, turn: 2.1, r: 1.7, seat: [-0.1, 3.35, 0], boost: 1.35, name: '骆驼' },
-  cart:  { accel: 20, max: 21, turn: 1.9, r: 1.9, seat: [-0.4, 1.35, 0], boost: 1.3, name: '观光车' },
-  sled:  { accel: 26, max: 26, turn: 1.6, r: 1.5, seat: [0.2, 1.4, 0], boost: 1.6, name: '火箭行李车' },
+  camel: { accel: 15, max: 12, turn: 2.1, r: 1.7, seat: [-0.1, 3.35, 0], boost: 1.35, name: L('骆驼') },
+  cart:  { accel: 20, max: 21, turn: 1.9, r: 1.9, seat: [-0.4, 1.35, 0], boost: 1.3, name: L('观光车') },
+  sled:  { accel: 26, max: 26, turn: 1.6, r: 1.5, seat: [0.2, 1.4, 0], boost: 1.6, name: L('火箭行李车') },
 };
 function buildVehicleModel(kind) {
   const b = new Builder(renderer, true), part = (mesh, f, col) => b.arr.push({ mesh: renderer.m[mesh], m: M4.I(), f, col: hexToRgb(col), rad: 6 });
@@ -405,7 +405,7 @@ function updateVehicle(v, dt) {
   const o = pushOut(v.x + f[0] * v.sp * dt, v.z + f[2] * v.sp * dt, v.y, T.r);
   if (o.hit) {
     const imp = Math.abs(v.sp);
-    if (imp > 6) { shake(Math.min(1, imp / 25)); Snd.crash(); if (ridden) chaos(10 + imp, '撞墙'); }
+    if (imp > 6) { shake(Math.min(1, imp / 25)); Snd.crash(); if (ridden) chaos(10 + imp, L('撞墙')); }
     if (imp > 13 && v.rider) ejectRider(v, [f[0] * imp * 0.9, 6 + imp * 0.2, f[2] * imp * 0.9]);
     v.sp = -v.sp * 0.25;
   }
@@ -417,7 +417,7 @@ function updateVehicle(v, dt) {
       const hard = -v.vy; v.y = g; v.vy = 0; v.air = false;
       if (v.airT > 0.6) { shake(Math.min(1, hard / 25)); Snd.crash(); }
       if (ridden && v.airT >= 2.5) challengeDone('airtime');
-      if (ridden && v.airT > 1.2) chaos(Math.round(v.airT * 40), '腾空 ' + v.airT.toFixed(1) + 's');
+      if (ridden && v.airT > 1.2) chaos(Math.round(v.airT * 40), L('腾空 ') + v.airT.toFixed(1) + 's');
       if (hard > 21 && v.rider) ejectRider(v, [f[0] * v.sp, 5, f[2] * v.sp]);
       v.airT = 0;
     }
@@ -433,7 +433,7 @@ function updateVehicle(v, dt) {
       if (!ridden) v.sp *= 0.85;
     }
     if (ridden && typeof Social !== 'undefined') Social.hitNear(v.x, v.z, T.r + 0.5, () => [f[0] * v.sp * 1.15 + (Math.random() - 0.5) * 4, 4 + Math.abs(v.sp) * 0.25, f[2] * v.sp * 1.15 + (Math.random() - 0.5) * 4]);
-    if (v.ai === 'stampede' && P.state === 'walk' && Math.hypot(P.x - v.x, P.z - v.z) < T.r + 0.6) { startRag(P, [f[0] * v.sp * 1.2, 7, f[2] * v.sp * 1.2]); popup('骆驼大军路过，游客成为地毯', 'bad'); Snd.boing(); }
+    if (v.ai === 'stampede' && P.state === 'walk' && Math.hypot(P.x - v.x, P.z - v.z) < T.r + 0.6) { startRag(P, [f[0] * v.sp * 1.2, 7, f[2] * v.sp * 1.2]); popup(L('骆驼大军路过，游客成为地毯'), 'bad'); Snd.boing(); }
     for (const p of G.props) if (p.state !== 'fly' && Math.hypot(p.x - v.x, p.z - v.z) < T.r + 0.7) launchProp(p, [f[0] * v.sp * 1.1 + (Math.random() - 0.5) * 4, 5 + Math.random() * 4, f[2] * v.sp * 1.1 + (Math.random() - 0.5) * 4], ridden);
   }
   if (v.rider === P && P.state === 'ride') { const sp = v.seatPos(); P.sit = sp; P.x = sp.x; P.y = sp.y; P.z = sp.z; P.yaw = v.h; }
@@ -444,7 +444,7 @@ function hitHuman(h, vel, byPlayer, stampede) {
     chaos(50, pickOne(HUMOR.hit)); G.bowl.push(G.time);
     G.bowl = G.bowl.filter(t => G.time - t < 4); if (G.bowl.length >= 5) challengeDone('bowling');
     if (h.kind === 'guard') addHeat(0.5); else if (h.kind === 'merchant') addHeat(0.7); else addHeat(0.22);
-  } else if (stampede) chaos(15, '骆驼无差别路过');
+  } else if (stampede) chaos(15, L('骆驼无差别路过'));
   Snd.boing();
 }
 
@@ -465,7 +465,7 @@ class Prop {
 }
 function launchProp(p, vel, byPlayer) {
   p.state = 'fly'; p.vx = vel[0]; p.vy = vel[1]; p.vz = vel[2]; p.spin = (Math.random() - 0.5) * 14; p.bounces = 0;
-  if (byPlayer) { chaos(15, p.type === 'pot' ? '花瓶：我的一生' : p.type === 'melon' ? '西瓜 vs 物理' : '木箱升空'); addHeat(0.05); Snd.pop(); }
+  if (byPlayer) { chaos(15, p.type === 'pot' ? L('花瓶：我的一生') : p.type === 'melon' ? L('西瓜 vs 物理') : L('木箱升空')); addHeat(0.05); Snd.pop(); }
 }
 function updateProp(p, dt) {
   if (p.state !== 'fly') return;

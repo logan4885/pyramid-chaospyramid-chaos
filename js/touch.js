@@ -71,7 +71,7 @@ const Touch = {
     this.fpsT += dt; this.fpsN++;
     if (this.fpsT > 3000) {
       const fps = this.fpsN * 1000 / this.fpsT; this.fpsN = 0; this.fpsT = 0;
-      if (fps < 26 && renderer.q !== 'low') { const q = renderer.q === 'high' ? 'med' : 'low'; renderer.setQuality(q); renderer.dprCap = q === 'low' ? 1 : 1.25; popup('帧率偏低，已自动降到「' + (q === 'med' ? '中' : '低') + '」画质'); }
+      if (fps < 26 && renderer.q !== 'low') { const q = renderer.q === 'high' ? 'med' : 'low'; renderer.setQuality(q); renderer.dprCap = q === 'low' ? 1 : 1.25; popup(L('帧率偏低，已自动降到「') + (q === 'med' ? L('中') : L('低')) + L('」画质')); }
     }
   },
 };

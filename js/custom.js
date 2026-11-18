@@ -3,22 +3,22 @@ const Cust = {
   KEY: 'pc-look-v1', open: false, ang: Math.PI, auto: true, spec0: { skin: '#d9a577', hairCol: '#2a1b12', eyeCol: '#1a1210', shirt: '#b9652f', pants: '#3a4a63', shoe: '#3b2f2a', hatCol: '#ffd23f',
     hat: 'straw', gag: '', hairStyle: 'short', glasses: '', beard: '', stripe: '', scale: 1, wide: 1, head: 1, eye: 1, nose: 1, mouth: 1 },
   S: null, json: '',
-  SL: [['scale', '身高', 0.8, 1.25], ['wide', '胖瘦', 0.8, 1.45], ['head', '头大小', 0.8, 1.4], ['eye', '眼睛', 0.7, 1.8], ['nose', '鼻子', 0.5, 2], ['mouth', '嘴巴', 0.6, 1.8]],
-  CO: [['skin', '肤色'], ['hairCol', '发色'], ['eyeCol', '瞳色'], ['shirt', '上衣'], ['pants', '裤子'], ['shoe', '鞋'], ['hatCol', '帽色']],
-  CH: [['hairStyle', '发型', [['short', '短发'], ['long', '长发'], ['bun', '丸子头'], ['mohawk', '莫西干'], ['twin', '双马尾'], ['afro', '爆炸头'], ['bald', '光头']]],
-    ['hat', '帽子', [['none', '无'], ['cap', '鸭舌帽'], ['straw', '草帽'], ['turban', '头巾']]], ['gag', '搞怪', [['', '无'], ['cone', '路锥'], ['duck', '小黄鸭'], ['ring', '游泳圈']]],
-    ['glasses', '眼镜', [['', '无'], ['clear', '透明'], ['shade', '墨镜']]], ['beard', '胡子', [['', '无'], ['goatee', '山羊胡'], ['full', '大胡子']]], ['stripe', '上衣花纹', [['', '纯色'], ['light', '浅条纹'], ['dark', '深条纹']]]],
+  SL: [['scale', L('身高'), 0.8, 1.25], ['wide', L('胖瘦'), 0.8, 1.45], ['head', L('头大小'), 0.8, 1.4], ['eye', L('眼睛'), 0.7, 1.8], ['nose', L('鼻子'), 0.5, 2], ['mouth', L('嘴巴'), 0.6, 1.8]],
+  CO: [['skin', L('肤色')], ['hairCol', L('发色')], ['eyeCol', L('瞳色')], ['shirt', L('上衣')], ['pants', L('裤子')], ['shoe', L('鞋')], ['hatCol', L('帽色')]],
+  CH: [['hairStyle', L('发型'), [['short', L('短发')], ['long', L('长发')], ['bun', L('丸子头')], ['mohawk', L('莫西干')], ['twin', L('双马尾')], ['afro', L('爆炸头')], ['bald', L('光头')]]],
+    ['hat', L('帽子'), [['none', L('无')], ['cap', L('鸭舌帽')], ['straw', L('草帽')], ['turban', L('头巾')]]], ['gag', L('搞怪'), [['', L('无')], ['cone', L('路锥')], ['duck', L('小黄鸭')], ['ring', L('游泳圈')]]],
+    ['glasses', L('眼镜'), [['', L('无')], ['clear', L('透明')], ['shade', L('墨镜')]]], ['beard', L('胡子'), [['', L('无')], ['goatee', L('山羊胡')], ['full', L('大胡子')]]], ['stripe', L('上衣花纹'), [['', L('纯色')], ['light', L('浅条纹')], ['dark', L('深条纹')]]]],
   load() { try { this.S = Object.assign({}, this.spec0, JSON.parse(localStorage.getItem(this.KEY) || '{}')); } catch (e) { this.S = Object.assign({}, this.spec0); } this.json = JSON.stringify(this.S); return this.S; },
   spec() { return this.S || this.load(); },
   save() { this.json = JSON.stringify(this.S); try { localStorage.setItem(this.KEY, this.json); } catch (e) {} },
   apply() { if (G && G.player) { const p = G.player; p.look = makeLook(this.S); } this.save(); },
   build() {
     const d = document.createElement('div'); d.id = 'cust'; d.className = 'hidden';
-    let h = '<div class="chead"><b>🎭 捏脸 / 换装</b><span><button id="cRnd">🎲 随机</button><button id="cRst">重置</button><button id="cOk" class="big">完成</button></span></div><div class="cbody">';
-    h += '<div class="cgrp">体型 / 脸型</div>' + this.SL.map(s => `<label class="csl">${s[1]}<input type="range" data-k="${s[0]}" min="${s[2]}" max="${s[3]}" step="0.01"><em></em></label>`).join('');
-    h += '<div class="cgrp">颜色</div><div class="ccols">' + this.CO.map(c => `<label>${c[1]}<input type="color" data-k="${c[0]}"></label>`).join('') + '</div>';
+    let h = L('<div class="chead"><b>🎭 捏脸 / 换装</b><span><button id="cRnd">🎲 随机</button><button id="cRst">重置</button><button id="cOk" class="big">完成</button></span></div><div class="cbody">');
+    h += L('<div class="cgrp">体型 / 脸型</div>') + this.SL.map(s => `<label class="csl">${s[1]}<input type="range" data-k="${s[0]}" min="${s[2]}" max="${s[3]}" step="0.01"><em></em></label>`).join('');
+    h += L('<div class="cgrp">颜色</div><div class="ccols">') + this.CO.map(c => `<label>${c[1]}<input type="color" data-k="${c[0]}"></label>`).join('') + '</div>';
     h += this.CH.map(c => `<div class="cgrp">${c[1]}</div><div class="cchips" data-k="${c[0]}">` + c[2].map(o => `<b data-v="${o[0]}">${o[1]}</b>`).join('') + '</div>').join('');
-    h += '<div class="chint">拖动画面旋转角色 · 设置自动保存，联机时其他玩家能看到</div></div>';
+    h += L('<div class="chint">拖动画面旋转角色 · 设置自动保存，联机时其他玩家能看到</div></div>');
     d.innerHTML = h; document.body.appendChild(d); this.el = d;
     d.addEventListener('input', e => { const k = e.target.dataset.k; if (!k) return; this.S[k] = e.target.type === 'range' ? parseFloat(e.target.value) : e.target.value; this.apply(); this.sync(); });
     d.addEventListener('click', e => { const t = e.target; if (t.dataset.v === undefined) return; this.S[t.parentNode.dataset.k] = t.dataset.v; this.apply(); this.sync(); });

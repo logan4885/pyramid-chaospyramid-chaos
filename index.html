@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#1b1410">
 <title>PYRAMID CHAOS · MVP02</title>
-<link rel="stylesheet" href="css/style.css?v=20261117m">
+<link rel="stylesheet" href="css/style.css?v=20261117n">
 </head>
 <body>
 <canvas id="gl"></canvas>
@@ -41,8 +41,9 @@
 
 <div id="screenMenu" class="screen">
   <div class="card">
+    <div class="lang"><b data-l="zh">中文</b><b data-l="en">English</b></div>
     <h1>PYRAMID CHAOS</h1>
-    <h2>金字塔大乱斗 · MVP02（第三人称搞笑沙盒）<small style="font-size:11px;opacity:.6"> build 20261117m</small></h2>
+    <h2>金字塔大乱斗 · MVP02（第三人称搞笑沙盒）<small style="font-size:11px;opacity:.6"> build 20261117n</small></h2>
     <p>你是一位<b>不太守规矩的游客</b>。景区很大，规则很少。骑骆驼、开观光车、坐火箭行李车、用喷射背包飞上金字塔——然后向保安解释这一切。</p>
     <ul>
       <li>撞飞路人、砸东西、偷骆驼会提高<b>通缉星级</b>；<b>G 键抓人、再按 G 扔出去</b>！通缉升级：1★保安步行 → 2★骑骆驼 → 3★喷气背包 → 4★轰炸机 → 5★核弹</li>
@@ -54,28 +55,29 @@
     <div class="net">
       <label>昵称<input id="nameIn" maxlength="12" autocomplete="off"></label>
       <label id="srvLabel">联机服务器<input id="srvIn" autocomplete="off" placeholder="可选：ws://IP:8787"></label>
-      <small>同一房间号的玩家互相可见（头顶气泡聊天 · Enter 打字）。不填服务器 = 同一浏览器的多个标签页联机；跨电脑请运行 <b>node server.js</b> 后用 http://IP:8787 打开。</small>
+      <small>所有玩家都在同一个房间，联机后能互相看到（头顶气泡聊天 · Enter 打字）。不填服务器 = 同一浏览器的多个标签页联机；跨电脑请运行 <b>node server.js</b> 后用 http://IP:8787 打开。</small>
     </div>
     <button id="btnCust" class="big alt">🎭 捏脸 / 换装</button>
     <button id="btnStart" class="big">开始作妖</button>
     <small>景区、人物与事件均为虚构；本游戏讽刺混乱的旅游体验，不针对任何真实群体。支持电脑键鼠和手机触屏（建议横屏）。</small>
   </div>
 </div>
-<div id="screenPause" class="screen hidden"><div class="card small"><h2>已暂停</h2><button id="btnResume" class="big">继续</button><button id="btnCust2">🎭 捏脸 / 换装</button><button id="btnRestart">重新开始</button></div></div>
+<div id="screenPause" class="screen hidden"><div class="card small"><div class="lang"><b data-l="zh">中文</b><b data-l="en">English</b></div><h2>已暂停</h2><button id="btnResume" class="big">继续</button><button id="btnCust2">🎭 捏脸 / 换装</button><button id="btnRestart">重新开始</button></div></div>
 <div id="err" class="hidden"></div>
 
 <div id="nukeBanner" class="hidden"></div><div id="flash"></div>
 <div id="dbg" style="position:fixed;left:8px;bottom:8px;z-index:50;font:11px/1.35 monospace;color:#0f0;background:rgba(0,0,0,.65);padding:6px 8px;border-radius:6px;white-space:pre;display:none;pointer-events:none"></div>
-<script src="js/engine.js?v=20261117m"></script>
-<script src="js/data.js?v=20261117m"></script>
-<script src="js/world.js?v=20261117m"></script>
-<script src="js/entities.js?v=20261117m"></script>
-<script src="js/fx.js?v=20261117m"></script>
-<script src="js/police.js?v=20261117m"></script>
-<script src="js/net.js?v=20261117m"></script>
-<script src="js/custom.js?v=20261117m"></script>
-<script src="js/social.js?v=20261117m"></script>
-<script src="js/touch.js?v=20261117m"></script>
-<script src="js/game.js?v=20261117m"></script>
+<script src="js/i18n.js?v=20261117n"></script>
+<script src="js/engine.js?v=20261117n"></script>
+<script src="js/data.js?v=20261117n"></script>
+<script src="js/world.js?v=20261117n"></script>
+<script src="js/entities.js?v=20261117n"></script>
+<script src="js/fx.js?v=20261117n"></script>
+<script src="js/police.js?v=20261117n"></script>
+<script src="js/net.js?v=20261117n"></script>
+<script src="js/custom.js?v=20261117n"></script>
+<script src="js/social.js?v=20261117n"></script>
+<script src="js/touch.js?v=20261117n"></script>
+<script src="js/game.js?v=20261117n"></script>
 </body>
 </html>

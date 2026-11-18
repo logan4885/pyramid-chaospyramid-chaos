@@ -103,3 +103,6 @@ js/game.js      状态、输入、玩家、相机、通缉、挑战、HUD、小�
 
 ## 玩家互当 NPC
 联机时其他玩家和路人一样：靠近按 **G** 抓起、再按 G 扔出；冲刺 / 开车 / 喇叭可把对方撞飞（对方会真的变成布娃娃，所有人都看得到）；被抓住连按空格可挣脱。
+
+## English / 中文（build 20261117n）
+Bilingual. Language is picked by `?lang=en` / `?lang=zh`, otherwise by the saved choice, otherwise by browser language. Use the 中文 / English switch at the top-right of the menu or pause screen. All UI, challenges, jokes and in-game messages are translated (`js/i18n.js` holds the dictionary).

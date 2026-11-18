@@ -31,10 +31,10 @@ function grabOrThrow() {
   if (G.overlay) return;
   if (G.held) return throwHeld();
   const P = G.player; if (P.state !== 'walk') return;
-  const h = nearestGrab(); if (!h) { popup('附近没有能抓的人（贴近一点）'); return; }
+  const h = nearestGrab(); if (!h) { popup(L('附近没有能抓的人（贴近一点）')); return; }
   h.state = 'held'; h.jet = false; h.target = null; h.selfie = false; h.wave = false; h.fleeT = 0; h.air = true; h.vx = h.vz = h.vy = 0; h.moveAmt = 0; h.runAmt = 0;
   if (h.remoteId) Social.grab(h);
-  G.held = h; chaos(25, h.kind === 'guard' ? '把保安举过头顶' : '一把薅起'); Snd.boing();
+  G.held = h; chaos(25, h.kind === 'guard' ? L('把保安举过头顶') : L('一把薅起')); Snd.boing();
   addHeat(h.kind === 'guard' ? 0.35 : h.kind === 'merchant' ? 0.5 : 0.12);
 }
 function dropHeld() { const h = G.held; G.held = null; if (!h) return; h.state = 'walk'; h.air = false; if (h.remoteId) { Social.release(h, 'drop'); return; } startRag(h, [0, 2, 0]); }
@@ -51,7 +51,7 @@ function throwHeld() {
   if (h.remoteId) Social.release(h, 'throw', { v, p: [h.x, h.y, h.z] }); else { startRag(h, v);
   h.thrown = { x: h.x, z: h.z, t: G.time }; }
   P.yaw = Math.atan2(-v[0], -v[2]);
-  chaos(60, '投掷：人形铅球'); shake(0.25); Snd.boing(); Snd.crash();
+  chaos(60, L('投掷：人形铅球')); shake(0.25); Snd.boing(); Snd.crash();
 }
 function updateHeld(dt) {
   const h = G.held, P = G.player; if (!h) return;
@@ -86,7 +86,7 @@ function updateThrown(dt) {
     }
     if ((rag.rest > 0.35 && rag.t > 0.8) || rag.t > 6) {
       const d = Math.hypot(h.x - h.thrown.x, h.z - h.thrown.z); h.thrown = null;
-      if (d > 6) chaos(Math.round(d * 4), `投掷 ${d.toFixed(0)} 米`);
+      if (d > 6) chaos(Math.round(d * 4), L('投掷 {0} 米', d.toFixed(0)));
       if (d >= 25) challengeDone('throwFar');
     }
   }
@@ -131,7 +131,7 @@ function updateCopCamels(dt, stars) {
     if (rv && rv !== v && Math.hypot(v.x - rv.x, v.z - rv.z) < VEH[rv.kind].r + VEH.camel.r && Math.abs(rv.sp) > 9) {
       const f = [-Math.sin(rv.h), 0, -Math.cos(rv.h)];
       ejectCop(v, [f[0] * rv.sp * 1.3, 8, f[2] * rv.sp * 1.3]); v.sp = rv.sp * 0.5;
-      chaos(150, '撞飞骑警'); challengeDone('ramCop'); addHeat(0.25); shake(0.6); Snd.crash(); continue;
+      chaos(150, L('撞飞骑警')); challengeDone('ramCop'); addHeat(0.25); shake(0.6); Snd.crash(); continue;
     }
     if ((P.state === 'walk' && d < VEH.camel.r + 0.9) || (rv && rv !== v && d < VEH.camel.r + 1.6 && Math.abs(rv.sp) < 9)) { busted(); break; }
   }
@@ -177,7 +177,7 @@ function dropBomb(pl, aimed) {
 function updatePlane(dt, stars) {
   const P = G.player;
   if (stars >= 4 && !G.plane) {
-    if (G.planeAt === null) { G.planeAt = G.time + 2.5; narrate('planeCome', '空军到了。没人知道景区什么时候买的飞机。'); }
+    if (G.planeAt === null) { G.planeAt = G.time + 2.5; narrate('planeCome', L('空军到了。没人知道景区什么时候买的飞机。')); }
     if (G.time >= G.planeAt) { G.plane = { x: 0, y: 46, z: 0, h: 0, f: [0, -1], sp: 42, state: 'pass', bombT: 0, leave: false, wait: 0 }; planePass(); }
   } else if (stars < 4) { G.planeAt = null; if (G.plane) G.plane.leave = true; }
   const pl = G.plane; if (!pl) return;
@@ -210,7 +210,7 @@ function explode(x, y, z, R) {
   if (!G.overlay && dP < R + 0.5 && Math.abs(P.y - y) < 6) {
     const v = away(P.x, P.z, 14 * (1.2 - dP / (R + 1)) + 6);
     if (P.state === 'ride') ejectRider(P.vehicle, v); else startRag(P, v);
-    hurt(10 + 28 * (1 - dP / (R + 1))); popup('💥 被轰炸了！', 'bad');
+    hurt(10 + 28 * (1 - dP / (R + 1))); popup(L('💥 被轰炸了！'), 'bad');
   }
   for (const h of G.humans) { if (h.state === 'held' || h.state === 'ride') continue; const d = Math.hypot(h.x - x, h.z - z); if (d < R * 1.25 && Math.abs(h.y - y) < 7) hitHuman(h, away(h.x, h.z, 14 * (1.3 - d / (R * 1.25))), false); }
   for (const p of G.props) if (Math.hypot(p.x - x, p.z - z) < R * 1.5) launchProp(p, away(p.x, p.z, 14), false);
@@ -220,16 +220,16 @@ function explode(x, y, z, R) {
 /* ---------------- ★5 核弹 ---------------- */
 function launchNuke() {
   const P = G.player; G.nuke = { state: 'warn', t: 0, x: P.x, z: P.z, y: groundAt(P.x, P.z, P.y + 1) };
-  popup('☢ 核弹已发射 · 逃出红圈！', 'bad'); Snd.siren();
+  popup(L('☢ 核弹已发射 · 逃出红圈！'), 'bad'); Snd.siren();
 }
 function updateNuke(dt, stars) {
-  if (stars >= 5) { if (G.nukeAt === null && !G.nuke) { G.nukeAt = G.time + 3; narrate('nukeCome', '管理方决定一次性解决问题。问题指的是你。'); } if (!G.nuke && G.nukeAt !== null && G.time >= G.nukeAt && !G.overlay) launchNuke(); }
+  if (stars >= 5) { if (G.nukeAt === null && !G.nuke) { G.nukeAt = G.time + 3; narrate('nukeCome', L('管理方决定一次性解决问题。问题指的是你。')); } if (!G.nuke && G.nukeAt !== null && G.time >= G.nukeAt && !G.overlay) launchNuke(); }
   else if (!G.nuke) G.nukeAt = null;
   const n = G.nuke, ban = document.getElementById('nukeBanner'); if (!n) { ban && ban.classList.add('hidden'); return; }
   n.t += dt;
   if (n.state === 'warn') {
     const P = G.player, dist = Math.hypot(P.x - n.x, P.z - n.z), left = Math.max(0, NUKE_T - n.t);
-    if (ban) { ban.classList.remove('hidden'); ban.classList.toggle('safe', dist > NUKE_R + 3); ban.textContent = `☢ 核弹倒计时 ${Math.ceil(left)}　·　你离爆心 ${Math.round(dist)} 米（安全 > ${NUKE_R}）`; }
+    if (ban) { ban.classList.remove('hidden'); ban.classList.toggle('safe', dist > NUKE_R + 3); ban.textContent = L('☢ 核弹倒计时 {0}　·　你离爆心 {1} 米（安全 > {2}）', Math.ceil(left), Math.round(dist), NUKE_R); }
     if (Math.floor(n.t * 1.4) !== Math.floor((n.t - dt) * 1.4)) Snd.siren();
     if (n.t >= NUKE_T) detonate(n);
   } else if (n.state === 'boom') {
@@ -248,15 +248,15 @@ function detonate(n) {
   for (const v of G.vehicles) { if (v.rider === P) continue; const d = Math.hypot(v.x - n.x, v.z - n.z); if (d < NUKE_R * 1.2) { v.air = true; v.vy = 14; v.sp = 0; } }
   const dP = Math.hypot(P.x - n.x, P.z - n.z);
   if (!G.overlay) {
-    if (dP < NUKE_R) die('被核弹平均分配到了每一个原子');
-    else { challengeDone('nukeSurvive'); popup('你在核爆里幸存了。运气也是一种技术。', 'good'); if (dP < NUKE_R * 1.5) { if (P.state === 'ride') ejectRider(P.vehicle, away(P.x, P.z, 18)); else startRag(P, away(P.x, P.z, 18)); } }
+    if (dP < NUKE_R) die(L('被核弹平均分配到了每一个原子'));
+    else { challengeDone('nukeSurvive'); popup(L('你在核爆里幸存了。运气也是一种技术。'), 'good'); if (dP < NUKE_R * 1.5) { if (P.state === 'ride') ejectRider(P.vehicle, away(P.x, P.z, 18)); else startRag(P, away(P.x, P.z, 18)); } }
   }
 }
 
 /* ---------------- 总入口 ---------------- */
 function updateCops(dt) {
   const stars = Math.floor(G.heat);
-  for (let s = 2; s <= 5; s++) if (stars >= s && !G.tierMsg[s]) { G.tierMsg[s] = 1; popup(['', '', '★★ 骑警出动：保安换了骆驼，理由是预算批下来了', '★★★ 喷气背包保安上线：报销单已提交', '★★★★ 轰炸机来了：景区没有防空预案', '★★★★★ 核弹：管理方的最终解决方案'][s], 'bad'); }
+  for (let s = 2; s <= 5; s++) if (stars >= s && !G.tierMsg[s]) { G.tierMsg[s] = 1; popup(['', '', L('★★ 骑警出动：保安换了骆驼，理由是预算批下来了'), L('★★★ 喷气背包保安上线：报销单已提交'), L('★★★★ 轰炸机来了：景区没有防空预案'), L('★★★★★ 核弹：管理方的最终解决方案')][s], 'bad'); }
   updateHeld(dt); updateThrown(dt);
   if (!G.overlay) { updateCopCamels(dt, stars); updateJetCops(dt, stars); }
   updatePlane(dt, stars); updateBombs(dt); updateNuke(dt, stars);

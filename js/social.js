@@ -4,7 +4,7 @@ const Social = {
   rgb(a) { return a ? `rgb(${Math.round(a[0] * 255)},${Math.round(a[1] * 255)},${Math.round(a[2] * 255)})` : '#ccc'; },
   init() {
     const sv = k => { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } };
-    $('nameIn').value = sv('pc_name') || '游客' + Math.floor(100 + Math.random() * 900);
+    $('nameIn').value = sv('pc_name') || L('游客') + Math.floor(100 + Math.random() * 900);
     $('srvIn').value = sv('pc_srv'); if (/^https?:$/.test(location.protocol)) $('srvLabel').style.display = 'none';   // 网页版：所有人固定进同一房间，自动连本服务器
     Net.getState = () => {
       const P = G.player, v = P.state === 'ride' && P.vehicle ? P.vehicle : null, r = x => Math.round(x * 100) / 100;
@@ -39,17 +39,17 @@ const Social = {
   },
   submit(t) {
     let m;
-    if ((m = /^\/name\s+(.+)/.exec(t))) { Net.rename(m[1]); $('nameIn').value = Net.name; try { localStorage.setItem('pc_name', Net.name); } catch (e) {} popup('昵称已改为：' + Net.name); }
+    if ((m = /^\/name\s+(.+)/.exec(t))) { Net.rename(m[1]); $('nameIn').value = Net.name; try { localStorage.setItem('pc_name', Net.name); } catch (e) {} popup(L('昵称已改为：') + Net.name); }
     else Net.chat(t);
   },
   addBubble(id, text) { this.bubbles.set(id, { text, t0: performance.now(), dur: Math.min(13000, 5500 + text.length * 160) }); },
   renderRoom() {
     if (typeof G === 'undefined' || !G || !Net.joined) { $('roomPanel').classList.add('hidden'); return; }
     $('roomPanel').classList.remove('hidden');
-    $('rRoom').textContent = '房间 ' + Net.room; $('rMode').textContent = Net.mode === 'ws' ? '🌐 联机' : '🖥 本机标签页';
+    $('rRoom').textContent = L('房间 ') + Net.room; $('rMode').textContent = Net.mode === 'ws' ? L('🌐 联机') : L('🖥 本机标签页');
     const peers = [...Net.peers.values()].filter(p => p.name).sort((a, b) => a.name.localeCompare(b.name));
-    $('rCount').textContent = '在线 ' + (peers.length + 1);
-    const li = (name, look, me) => `<li><i style="background:${this.rgb(look && look.shirt)}"></i><span>${esc(name)}</span>${me ? '<em>你</em>' : ''}</li>`;
+    $('rCount').textContent = L('在线 ') + (peers.length + 1);
+    const li = (name, look, me) => `<li><i style="background:${this.rgb(look && look.shirt)}"></i><span>${esc(name)}</span>${me ? L('<em>你</em>') : ''}</li>`;
     $('rList').innerHTML = li(Net.name, G.player.look, true) + peers.map(p => li(p.name, p.look, false)).join('');
     const now = performance.now();
     $('chatLog').innerHTML = Net.log.slice(-6).map(e => `<div class="${now - e.t > 14000 ? 'old' : ''}"><b>${esc(e.name)}</b>${esc(e.text)}</div>`).join('');
@@ -62,23 +62,23 @@ const Social = {
     for (const r of this.remotes.values()) {
       const h = r.h; if (r.held || h.state === 'rag' || h.state === 'held' || (r.cd || 0) > G.time) continue;
       const dx = h.x - x, dz = h.z - z, d = Math.hypot(dx, dz); if (d > rad || Math.abs(h.y - G.player.y) > 3) continue;
-      r.cd = G.time + 1; Net.sendEv(r.id, 'hit', { v: velFn(dx, dz, d) }); chaos(50, '撞飞玩家 ' + ((Net.peers.get(r.id) || {}).name || '')); Snd.boing();
+      r.cd = G.time + 1; Net.sendEv(r.id, 'hit', { v: velFn(dx, dz, d) }); chaos(50, L('撞飞玩家 ') + ((Net.peers.get(r.id) || {}).name || '')); Snd.boing();
     }
   },
   onEv(m) {
-    const P = G.player, nm = m.name || '有人'; if (!G || G.phase !== 'play' || G.overlay || Cust.open) return;
+    const P = G.player, nm = m.name || L('有人'); if (!G || G.phase !== 'play' || G.overlay || Cust.open) return;
     const leave = () => { if (P.state === 'ride') { if (P.vehicle && P.vehicle.rider === P) P.vehicle.rider = null; P.vehicle = null; P.sit = null; P.state = 'walk'; } if (G.held) dropHeld(); };
     if (m.k === 'grab') {
       if (P.state === 'rag' || P.state === 'held') return; const c = (this.remotes.get(m.id) || {}).h; if (!c) return;
-      leave(); P.state = 'held'; P.carrier = c; P.carrierId = m.id; P.struggle = 0; P.air = true; G.jet = false; popup(`${nm} 把你提起来了！连按空格挣脱`, 'bad'); Snd.boing();
+      leave(); P.state = 'held'; P.carrier = c; P.carrierId = m.id; P.struggle = 0; P.air = true; G.jet = false; popup(L('{0} 把你提起来了！连按空格挣脱', nm), 'bad'); Snd.boing();
     } else if (m.k === 'hit') {
-      if (P.state === 'held') { P.state = 'walk'; P.carrier = null; } leave(); startRag(P, m.d.v); shake(0.4); Snd.boing(); popup(`${nm} 把你撞飞了！`, 'bad');
+      if (P.state === 'held') { P.state = 'walk'; P.carrier = null; } leave(); startRag(P, m.d.v); shake(0.4); Snd.boing(); popup(L('{0} 把你撞飞了！', nm), 'bad');
     } else if (m.k === 'throw') {
-      if (P.state !== 'held') return; P.state = 'walk'; P.carrier = null; if (m.d.p) { P.x = m.d.p[0]; P.y = m.d.p[1]; P.z = m.d.p[2]; } startRag(P, m.d.v); shake(0.4); Snd.crash(); popup(`${nm} 把你扔出去了！`, 'bad');
+      if (P.state !== 'held') return; P.state = 'walk'; P.carrier = null; if (m.d.p) { P.x = m.d.p[0]; P.y = m.d.p[1]; P.z = m.d.p[2]; } startRag(P, m.d.v); shake(0.4); Snd.crash(); popup(L('{0} 把你扔出去了！', nm), 'bad');
     } else if (m.k === 'drop') {
       if (P.state !== 'held') return; P.state = 'walk'; P.carrier = null; startRag(P, [0, 2, 0]);
     } else if (m.k === 'free') {
-      if (G.held && G.held.remoteId === m.id) { const h = G.held; G.held = null; const r = this.remotes.get(m.id); if (r) r.held = false; h.state = 'walk'; popup(`${nm} 挣脱了`); }
+      if (G.held && G.held.remoteId === m.id) { const h = G.held; G.held = null; const r = this.remotes.get(m.id); if (r) r.held = false; h.state = 'walk'; popup(L('{0} 挣脱了', nm)); }
     }
   },
   /** 每帧：同步远程玩家（插值）、必要时创建/清理 */

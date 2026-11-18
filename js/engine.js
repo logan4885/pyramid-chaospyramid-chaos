@@ -442,7 +442,7 @@ const QUAL = {
 class Renderer {
   constructor(canvas) {
     const gl = this.gl = canvas.getContext('webgl', { antialias: true, alpha: false });
-    if (!gl) throw new Error('当前浏览器不支持 WebGL');
+    if (!gl) throw new Error(L('当前浏览器不支持 WebGL'));
     this.canvas = canvas;
     this.prog = this._mk(VS, FS, ['aPos', 'aNor', 'aCol']);
     this.U = this._uni(this.prog, ['uVP','uModel','uColor','uSunDir','uSunCol','uAmbS','uAmbG','uFog','uCam','uMat','uVC','uUnlit','uSpec','uFogD','uTime','uShadowOn','uTexel','uOut','uHdr','uRim','uShadow','uLVP']);

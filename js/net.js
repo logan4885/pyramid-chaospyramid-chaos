@@ -7,7 +7,7 @@ const Net = {
   id: Math.random().toString(36).slice(2, 9), name: '', room: 'lobby', peers: new Map(), log: [], mode: '', joined: false,
   getState: null, onChat: null, onChange: null, _bc: null, _ws: null, _timer: null, _retry: 0, _url: '', _n: 0, _seen: new Set(),
   join(room, name, server) {
-    this.leave(); this.room = (room || 'lobby').trim().slice(0, 16) || 'lobby'; this.name = (name || '游客').trim().slice(0, 12) || '游客';
+    this.leave(); this.room = (room || 'lobby').trim().slice(0, 16) || 'lobby'; this.name = (name || L('游客')).trim().slice(0, 12) || L('游客');
     this.joined = true; this.peers.clear(); this.mode = ''; this._url = server || '';
     try { this._bc = new BroadcastChannel('pyramid-chaos:' + this.room); this._bc.onmessage = e => this.handle(e.data); this.mode = 'tab'; } catch (e) { this._bc = null; }
     const http = location.protocol === 'http:' || location.protocol === 'https:';

@@ -123,3 +123,9 @@ body.touch #chatBox { bottom: auto; top: 10px; }
 body.editing #hud,body.editing #tctl{display:none!important}
 @media (max-width:760px) and (orientation:portrait){#cust{top:auto;height:52vh;width:100%;border-left:0;border-top:2px solid #c99a4a}}
 .big.alt{background:#4a6f9c;margin-right:8px}
+
+/* 语言切换 */
+.lang{position:absolute;right:14px;top:12px;display:flex;gap:4px;z-index:5}
+.lang b{font-size:12px;padding:3px 9px;border:1px solid #6b5230;border-radius:10px;cursor:pointer;color:#d8c9a6;font-weight:normal}
+.lang b.on{background:#e6b85c;color:#2a1b0a;border-color:#e6b85c}
+.card{position:relative}
